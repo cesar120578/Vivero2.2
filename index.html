@@ -2,7 +2,9 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Viveros RDM 2.3 PRO</title>
+<title>Viveros RDM 2.4 PRO</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body{
@@ -12,8 +14,19 @@ body{
     text-align:center;
 }
 h2{
+    cursor:pointer;
     border-bottom:1px solid gold;
-    padding-bottom:5px;
+    padding:8px;
+}
+.section{
+    width:85%;
+    margin:20px auto;
+    border:1px solid gold;
+    border-radius:10px;
+    padding:15px;
+}
+.hidden{
+    display:none;
 }
 input,select,button{
     padding:8px;
@@ -27,32 +40,15 @@ button{
     font-weight:bold;
     cursor:pointer;
 }
-button:hover{
-    background:#d4af37;
-}
-.section{
-    margin:20px auto;
-    width:80%;
-    border:1px solid gold;
-    padding:15px;
-    border-radius:10px;
-}
-.hidden{
-    display:none;
-}
-ul{
-    list-style:none;
-    padding:0;
-}
-li{
-    margin:3px 0;
-}
-.mensaje{
+table{
+    width:100%;
     margin-top:10px;
-    font-weight:bold;
+    border-collapse:collapse;
 }
-.error{ color:red; }
-.exito{ color:lime; }
+th,td{
+    border:1px solid gold;
+    padding:6px;
+}
 </style>
 </head>
 
@@ -60,13 +56,9 @@ li{
 
 <h1>🌿 VIVEROS ROSAS DEL MONTE 🌿</h1>
 
-<div class="mensaje" id="mensaje"></div>
-
-<!-- AGREGAR PLANTA -->
+<!-- AGREGAR -->
 <div class="section">
-<h2>Agregar Planta</h2>
-<button onclick="toggle('agregarDiv')">Mostrar / Ocultar</button>
-
+<h2 onclick="toggle('agregarDiv')">Agregar Planta</h2>
 <div id="agregarDiv" class="hidden">
 
 <input id="nombreNueva" placeholder="Nombre">
@@ -82,8 +74,7 @@ li{
 
 <!-- INVENTARIO -->
 <div class="section">
-<h2>Inventario</h2>
-<button onclick="toggle('inventarioDiv')">Mostrar / Ocultar</button>
+<h2 onclick="toggle('inventarioDiv')">Inventario</h2>
 <div id="inventarioDiv" class="hidden">
 <ul id="listaInventario"></ul>
 </div>
@@ -91,62 +82,64 @@ li{
 
 <!-- VENTAS -->
 <div class="section">
-<h2>Ventas</h2>
-<button onclick="toggle('ventasDiv')">Mostrar / Ocultar</button>
-
+<h2 onclick="toggle('ventasDiv')">Registrar Venta</h2>
 <div id="ventasDiv" class="hidden">
-
-<input id="buscarVenta" placeholder="Buscar planta..." onkeyup="filtrarPlantas()">
 
 <select id="ventaNombre"></select>
 <input id="ventaCantidad" type="number" placeholder="Cantidad">
-<button onclick="registrarVenta()">Registrar Venta</button>
-
-<ul id="listaVentas"></ul>
+<button onclick="registrarVenta()">Vender</button>
 
 </div>
 </div>
 
 <!-- REPORTES -->
 <div class="section">
-<h2>Reportes / Dashboard</h2>
-<button onclick="toggle('reporteDiv')">Mostrar / Ocultar</button>
-
+<h2 onclick="toggle('reporteDiv')">Reportes / Dashboard</h2>
 <div id="reporteDiv" class="hidden">
+
 <h3>Total generado: $<span id="totalDinero">0</span></h3>
-<ul id="desgloseVentas"></ul>
+
+<canvas id="graficaVentas"></canvas>
+
+<table>
+<thead>
+<tr>
+<th>Planta</th>
+<th>Cantidad</th>
+<th>Precio</th>
+<th>Total</th>
+<th>Fecha</th>
+</tr>
+</thead>
+<tbody id="tablaVentas"></tbody>
+</table>
+
 </div>
 </div>
 
 <script>
 
 let plantas = JSON.parse(localStorage.getItem("plantas")) || {};
-let ventas = JSON.parse(localStorage.getItem("ventas")) || [];
+let ventas = JSON.parse(localStorage.getItem("ventas")) || {};
+let grafica;
 
 function guardar(){
     localStorage.setItem("plantas",JSON.stringify(plantas));
     localStorage.setItem("ventas",JSON.stringify(ventas));
 }
 
-function mostrarMensaje(texto,tipo){
-    let m = document.getElementById("mensaje");
-    m.innerText = texto;
-    m.className = "mensaje " + tipo;
-    setTimeout(()=>{m.innerText="";},3000);
-}
-
 function toggle(id){
     document.getElementById(id).classList.toggle("hidden");
 }
 
-function ordenarAlfabetico(obj){
-    return Object.keys(obj).sort((a,b)=>a.localeCompare(b));
+function ordenar(){
+    return Object.keys(plantas).sort((a,b)=>a.localeCompare(b));
 }
 
-function actualizarListaExistente(){
-    let ul = document.getElementById("listaExistente");
+function actualizarExistentes(){
+    let ul=document.getElementById("listaExistente");
     ul.innerHTML="";
-    ordenarAlfabetico(plantas).forEach(nombre=>{
+    ordenar().forEach(nombre=>{
         let li=document.createElement("li");
         li.innerText=nombre;
         ul.appendChild(li);
@@ -156,9 +149,9 @@ function actualizarListaExistente(){
 function actualizarInventario(){
     let ul=document.getElementById("listaInventario");
     ul.innerHTML="";
-    ordenarAlfabetico(plantas).forEach(nombre=>{
+    ordenar().forEach(nombre=>{
         let li=document.createElement("li");
-        li.innerText=`${nombre} - Stock: ${plantas[nombre].inventario} - Precio: $${plantas[nombre].precio}`;
+        li.innerText=`${nombre} — ${plantas[nombre].inventario}`;
         ul.appendChild(li);
     });
 }
@@ -166,7 +159,7 @@ function actualizarInventario(){
 function actualizarSelect(){
     let select=document.getElementById("ventaNombre");
     select.innerHTML="";
-    ordenarAlfabetico(plantas).forEach(nombre=>{
+    ordenar().forEach(nombre=>{
         let option=document.createElement("option");
         option.value=nombre;
         option.text=nombre;
@@ -179,14 +172,8 @@ function agregarPlanta(){
     let precio=document.getElementById("precioNueva").value;
     let cantidad=document.getElementById("cantidadNueva").value;
 
-    if(nombre===""){ mostrarMensaje("Ingresa el nombre","error"); return;}
-    if(precio===""){ mostrarMensaje("Ingresa el precio","error"); return;}
-    if(cantidad===""){ mostrarMensaje("Ingresa la cantidad","error"); return;}
-
-    if(plantas[nombre]){
-        mostrarMensaje("Esa planta ya existe","error");
-        return;
-    }
+    if(!nombre||!precio||!cantidad){ alert("Completa todos los campos"); return; }
+    if(plantas[nombre]){ alert("Ya existe"); return;}
 
     plantas[nombre]={
         precio:parseFloat(precio),
@@ -196,26 +183,21 @@ function agregarPlanta(){
     guardar();
     actualizarTodo();
 
-    document.getElementById("nombreNueva").value="";
-    document.getElementById("precioNueva").value="";
-    document.getElementById("cantidadNueva").value="";
-
-    mostrarMensaje("Planta agregada correctamente","exito");
+    nombreNueva.value="";
+    precioNueva.value="";
+    cantidadNueva.value="";
 }
 
 function registrarVenta(){
     let nombre=document.getElementById("ventaNombre").value;
-    let cantidad=document.getElementById("ventaCantidad").value;
+    let cantidad=parseInt(document.getElementById("ventaCantidad").value);
 
-    if(cantidad===""){ mostrarMensaje("Ingresa la cantidad","error"); return;}
-    cantidad=parseInt(cantidad);
+    if(!cantidad||cantidad<=0){ alert("Cantidad inválida"); return;}
+    if(plantas[nombre].inventario < cantidad){ alert("Stock insuficiente"); return;}
 
-    if(plantas[nombre].inventario < cantidad){
-        mostrarMensaje("No hay suficiente stock","error");
-        return;
-    }
+    plantas[nombre].inventario -= cantidad;
 
-    plantas[nombre].inventario-=cantidad;
+    if(!Array.isArray(ventas)) ventas=[];
 
     ventas.push({
         nombre,
@@ -228,43 +210,56 @@ function registrarVenta(){
     guardar();
     actualizarTodo();
 
-    document.getElementById("ventaCantidad").value="";
-    document.getElementById("buscarVenta").value="";
-
-    mostrarMensaje("Venta registrada","exito");
+    ventaCantidad.value="";
 }
 
-function filtrarPlantas(){
-    let texto=document.getElementById("buscarVenta").value.toLowerCase();
-    let select=document.getElementById("ventaNombre");
-    select.innerHTML="";
-    ordenarAlfabetico(plantas).forEach(nombre=>{
-        if(nombre.toLowerCase().includes(texto)){
-            let option=document.createElement("option");
-            option.value=nombre;
-            option.text=nombre;
-            select.appendChild(option);
+function actualizarReportes(){
+
+    let total=0;
+    let tabla=document.getElementById("tablaVentas");
+    tabla.innerHTML="";
+
+    let conteo={};
+
+    ventas.forEach(v=>{
+        total+=v.total;
+
+        let row=document.createElement("tr");
+        row.innerHTML=`
+        <td>${v.nombre}</td>
+        <td>${v.cantidad}</td>
+        <td>$${v.precio}</td>
+        <td>$${v.total}</td>
+        <td>${v.fecha}</td>
+        `;
+        tabla.appendChild(row);
+
+        if(!conteo[v.nombre]) conteo[v.nombre]=0;
+        conteo[v.nombre]+=v.cantidad;
+    });
+
+    document.getElementById("totalDinero").innerText=total;
+
+    let labels=Object.keys(conteo);
+    let data=Object.values(conteo);
+
+    if(grafica) grafica.destroy();
+
+    let ctx=document.getElementById("graficaVentas").getContext("2d");
+    grafica=new Chart(ctx,{
+        type:"bar",
+        data:{
+            labels:labels,
+            datasets:[{
+                label:"Cantidad Vendida",
+                data:data
+            }]
         }
     });
 }
 
-function actualizarReportes(){
-    let total=0;
-    let ul=document.getElementById("desgloseVentas");
-    ul.innerHTML="";
-
-    ventas.forEach(v=>{
-        total+=v.total;
-        let li=document.createElement("li");
-        li.innerText=`${v.nombre} - ${v.cantidad} - $${v.precio} - Total: $${v.total}`;
-        ul.appendChild(li);
-    });
-
-    document.getElementById("totalDinero").innerText=total;
-}
-
 function actualizarTodo(){
-    actualizarListaExistente();
+    actualizarExistentes();
     actualizarInventario();
     actualizarSelect();
     actualizarReportes();
