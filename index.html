@@ -2,29 +2,28 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Sistema Vivero 2.2.1 - RDM</title>
+<title>Sistema Vivero ADMIN 2.0 - RDM</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body{
-    font-family: Arial, sans-serif;
-    background:#000000;
+    font-family: Arial;
+    background:#000;
     color:#d4af37;
     text-align:center;
-    margin:0;
 }
 
 .logo{
-    width:220px;
-    margin-top:25px;
+    width:200px;
+    margin-top:20px;
     filter: drop-shadow(0 0 8px #d4af37);
 }
 
 .container{
-    background:#111111;
+    background:#111;
+    margin:20px auto;
     padding:20px;
-    margin:25px auto;
     width:90%;
     max-width:900px;
     border-radius:15px;
@@ -32,9 +31,9 @@ body{
 }
 
 input, button, select{
+    width:90%;
     padding:10px;
-    margin:6px;
-    width:85%;
+    margin:5px;
     border-radius:8px;
     border:1px solid #d4af37;
     background:#000;
@@ -52,13 +51,9 @@ button:hover{
     background:#f0c75e;
 }
 
-.hidden{
-    display:none;
-}
+.hidden{ display:none; }
 
-.admin-only{
-    display:none;
-}
+.alerta{ color:red; font-weight:bold; }
 
 canvas{
     margin-top:20px;
@@ -72,12 +67,12 @@ canvas{
 <body>
 
 <img src="logo.jpg" class="logo">
-<h2>🌿 Sistema Vivero 2.2.1</h2>
+<h2>🌿 Sistema Vivero ADMIN 2.0</h2>
 
 <div class="container" id="loginDiv">
 <h3>🔐 Iniciar Sesión</h3>
-<input type="text" id="usuario" placeholder="Usuario">
-<input type="password" id="clave" placeholder="Contraseña">
+<input type="text" id="usuario">
+<input type="password" id="clave">
 <button onclick="login()">Entrar</button>
 <p id="errorLogin"></p>
 </div>
@@ -87,9 +82,25 @@ canvas{
 <p>Usuario activo: <span id="usuarioActivo"></span></p>
 <button onclick="logout()">Cerrar sesión</button>
 
-<hr>
+<div id="adminPanel">
 
-<h3>💰 Venta</h3>
+<hr>
+<h3>➕ Agregar Planta</h3>
+<input type="text" id="nombreNueva" placeholder="Nombre">
+<input type="number" id="precioNueva" placeholder="Precio">
+<input type="number" id="cantidadNueva" placeholder="Cantidad inicial">
+<button onclick="agregarPlanta()">Agregar</button>
+
+<hr>
+<h3>🌱 Reabastecer</h3>
+<select id="reabastecerNombre"></select>
+<input type="number" id="cantidadReabastecer" placeholder="Cantidad">
+<button onclick="reabastecer()">Reabastecer</button>
+
+</div>
+
+<hr>
+<h3>💰 Registrar Venta</h3>
 <select id="ventaNombre"></select>
 <input type="number" id="ventaCantidad" placeholder="Cantidad">
 
@@ -98,17 +109,24 @@ canvas{
 </label>
 
 <div id="descuentoDiv" class="hidden">
-<input type="password" id="claveAdminDescuento" placeholder="Clave Admin">
-<input type="number" id="precioEspecial" placeholder="Precio especial">
+<input type="password" id="claveAdminDescuento" placeholder="Clave admin">
+<input type="number" id="precioEspecial" placeholder="Nuevo precio">
 </div>
 
-<button onclick="registrarVenta()">Registrar Venta</button>
+<button onclick="registrarVenta()">Registrar</button>
 
 <hr>
+<h3>📊 Resumen del Día</h3>
+<div id="resumen"></div>
 
-<h3>📊 Dashboard de Ventas</h3>
+<hr>
+<h3>📦 Inventario</h3>
+<button onclick="toggleInventario()" id="btnInv">Mostrar Inventario</button>
+<div id="inventario" class="hidden"></div>
+
+<hr>
+<h3>📈 Gráficas</h3>
 <button onclick="generarGraficas()">Actualizar Gráficas</button>
-
 <canvas id="graficaDia"></canvas>
 <canvas id="graficaPlantas"></canvas>
 
@@ -134,134 +152,171 @@ function guardar(){
     localStorage.setItem("ventas", JSON.stringify(ventas));
 }
 
+// ===== LOGIN =====
 function login(){
-    let user = document.getElementById("usuario").value;
-    let pass = document.getElementById("clave").value;
+    let user = usuario.value;
+    let pass = clave.value;
 
-    if(admins.includes(user) && pass === claveAdmin){
-        rolActual = "admin";
-    } 
-    else if(empleados.includes(user) && pass === claveEmpleado){
-        rolActual = "empleado";
-    } 
-    else{
-        document.getElementById("errorLogin").innerText="Credenciales incorrectas";
+    if(admins.includes(user) && pass===claveAdmin){
+        rolActual="admin";
+    } else if(empleados.includes(user) && pass===claveEmpleado){
+        rolActual="empleado";
+        document.getElementById("adminPanel").style.display="none";
+    } else{
+        errorLogin.innerText="Credenciales incorrectas";
         return;
     }
 
-    usuarioActual = user;
-    document.getElementById("loginDiv").classList.add("hidden");
-    document.getElementById("sistema").classList.remove("hidden");
-    document.getElementById("usuarioActivo").innerText = user + " ("+rolActual+")";
+    usuarioActual=user;
+    loginDiv.classList.add("hidden");
+    sistema.classList.remove("hidden");
+    usuarioActivo.innerText=user+" ("+rolActual+")";
+    actualizarSelects();
+}
 
-    actualizarSelect();
+// ===== PLANTAS =====
+function agregarPlanta(){
+    if(rolActual!=="admin") return;
+
+    let nombre=nombreNueva.value.trim();
+    let precio=parseFloat(precioNueva.value);
+    let cantidad=parseInt(cantidadNueva.value);
+
+    if(!nombre||precio<=0||cantidad<0) return;
+    if(plantas[nombre]) return;
+
+    plantas[nombre]={precio, inventario:cantidad, vendidas:0};
+    guardar();
+    actualizarSelects();
+}
+
+function reabastecer(){
+    if(rolActual!=="admin") return;
+
+    let nombre=reabastecerNombre.value;
+    let cantidad=parseInt(cantidadReabastecer.value);
+    if(!plantas[nombre]||cantidad<=0) return;
+
+    plantas[nombre].inventario+=cantidad;
+    guardar();
+}
+
+// ===== VENTAS =====
+document.getElementById("descuentoCheck").addEventListener("change",()=>{
+    descuentoDiv.classList.toggle("hidden");
+});
+
+function registrarVenta(){
+    let nombre=ventaNombre.value;
+    let cantidad=parseInt(ventaCantidad.value);
+    if(!plantas[nombre]||cantidad<=0) return;
+    if(plantas[nombre].inventario<cantidad) return;
+
+    let precio=plantas[nombre].precio;
+
+    if(descuentoCheck.checked && rolActual==="admin"){
+        if(claveAdminDescuento.value===claveAdmin && precioEspecial.value>0){
+            precio=parseFloat(precioEspecial.value);
+        }
+    }
+
+    plantas[nombre].inventario-=cantidad;
+    plantas[nombre].vendidas+=cantidad;
+
+    ventas.push({
+        nombre,
+        cantidad,
+        precio,
+        total:cantidad*precio,
+        fecha:new Date().toLocaleString(),
+        usuario:usuarioActual
+    });
+
+    guardar();
+    actualizarResumen();
+}
+
+function actualizarResumen(){
+    let hoy=new Date().toLocaleDateString();
+    let ventasHoy=ventas.filter(v=>new Date(v.fecha).toLocaleDateString()===hoy);
+    let total=ventasHoy.reduce((s,v)=>s+v.total,0);
+    let cantidad=ventasHoy.reduce((s,v)=>s+v.cantidad,0);
+
+    resumen.innerHTML=`
+    Plantas vendidas hoy: ${cantidad}<br>
+    Dinero generado hoy: $${total.toFixed(2)}
+    `;
+}
+
+// ===== INVENTARIO =====
+function toggleInventario(){
+    inventario.classList.toggle("hidden");
+    btnInv.innerText = inventario.classList.contains("hidden")
+        ? "Mostrar Inventario"
+        : "Ocultar Inventario";
+
+    mostrarInventario();
+}
+
+function mostrarInventario(){
+    inventario.innerHTML="";
+    for(let nombre in plantas){
+        let p=plantas[nombre];
+        let alerta=p.inventario<=10?"<span class='alerta'>⚠ Bajo stock</span>":"";
+        inventario.innerHTML+=`
+        <p><strong>${nombre}</strong><br>
+        Precio: $${p.precio}<br>
+        Inventario: ${p.inventario} ${alerta}<br>
+        Vendidas: ${p.vendidas}</p><hr>
+        `;
+    }
+}
+
+function actualizarSelects(){
+    ventaNombre.innerHTML="";
+    reabastecerNombre.innerHTML="";
+    for(let nombre in plantas){
+        ventaNombre.innerHTML+=`<option>${nombre}</option>`;
+        reabastecerNombre.innerHTML+=`<option>${nombre}</option>`;
+    }
+    actualizarResumen();
+}
+
+// ===== GRÁFICAS =====
+let chart1, chart2;
+
+function generarGraficas(){
+    let hoy=new Date().toLocaleDateString();
+    let ventasHoy=ventas.filter(v=>new Date(v.fecha).toLocaleDateString()===hoy);
+    let total=ventasHoy.reduce((s,v)=>s+v.total,0);
+
+    if(chart1) chart1.destroy();
+    if(chart2) chart2.destroy();
+
+    chart1=new Chart(graficaDia,{
+        type:"bar",
+        data:{
+            labels:["Ventas Hoy"],
+            datasets:[{label:"Total $", data:[total], backgroundColor:"#d4af37"}]
+        }
+    });
+
+    let resumenPlantas={};
+    ventasHoy.forEach(v=>{
+        resumenPlantas[v.nombre]=(resumenPlantas[v.nombre]||0)+v.total;
+    });
+
+    chart2=new Chart(graficaPlantas,{
+        type:"pie",
+        data:{
+            labels:Object.keys(resumenPlantas),
+            datasets:[{data:Object.values(resumenPlantas)}]
+        }
+    });
 }
 
 function logout(){
     location.reload();
-}
-
-function actualizarSelect(){
-    let select = document.getElementById("ventaNombre");
-    select.innerHTML="";
-    for(let nombre in plantas){
-        let option = document.createElement("option");
-        option.value = nombre;
-        option.text = nombre;
-        select.appendChild(option);
-    }
-}
-
-document.getElementById("descuentoCheck").addEventListener("change", function(){
-    document.getElementById("descuentoDiv").classList.toggle("hidden");
-});
-
-function registrarVenta(){
-
-    let nombre = document.getElementById("ventaNombre").value;
-    let cantidad = parseInt(document.getElementById("ventaCantidad").value);
-
-    if(!plantas[nombre] || isNaN(cantidad) || cantidad<=0) return;
-
-    let precioAplicado = plantas[nombre].precioBase;
-
-    if(document.getElementById("descuentoCheck").checked){
-
-        let claveIngresada = document.getElementById("claveAdminDescuento").value;
-        let precioEspecial = parseFloat(document.getElementById("precioEspecial").value);
-
-        if(claveIngresada !== claveAdmin) return;
-        if(isNaN(precioEspecial) || precioEspecial<=0) return;
-
-        precioAplicado = precioEspecial;
-    }
-
-    if(plantas[nombre].inventario < cantidad) return;
-
-    plantas[nombre].inventario -= cantidad;
-
-    let venta = {
-        nombre,
-        cantidad,
-        precioAplicado,
-        total: cantidad*precioAplicado,
-        fecha: new Date().toLocaleString(),
-        usuario: usuarioActual
-    };
-
-    ventas.push(venta);
-    guardar();
-}
-
-// ===== GRÁFICAS =====
-let chartDia;
-let chartPlantas;
-
-function generarGraficas(){
-
-    let hoy = new Date().toLocaleDateString();
-    let ventasHoy = ventas.filter(v =>
-        new Date(v.fecha).toLocaleDateString() === hoy
-    );
-
-    let totalHoy = ventasHoy.reduce((sum,v)=>sum+v.total,0);
-
-    if(chartDia) chartDia.destroy();
-    if(chartPlantas) chartPlantas.destroy();
-
-    chartDia = new Chart(document.getElementById("graficaDia"),{
-        type:"bar",
-        data:{
-            labels:["Ventas Hoy"],
-            datasets:[{
-                label:"Total $",
-                data:[totalHoy],
-                backgroundColor:"#d4af37"
-            }]
-        }
-    });
-
-    let resumenPlantas = {};
-
-    ventasHoy.forEach(v=>{
-        if(!resumenPlantas[v.nombre]){
-            resumenPlantas[v.nombre]=0;
-        }
-        resumenPlantas[v.nombre]+=v.total;
-    });
-
-    chartPlantas = new Chart(document.getElementById("graficaPlantas"),{
-        type:"pie",
-        data:{
-            labels:Object.keys(resumenPlantas),
-            datasets:[{
-                data:Object.values(resumenPlantas),
-                backgroundColor:[
-                    "#d4af37","#f0c75e","#c9a227","#b8860b","#ffd700"
-                ]
-            }]
-        }
-    });
 }
 
 </script>
