@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Sistema Vivero 2.2.1 - RDM</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#000000;
+    color:#d4af37;
+    text-align:center;
+    margin:0;
+}
+
+.logo{
+    width:220px;
+    margin-top:25px;
+    filter: drop-shadow(0 0 8px #d4af37);
+}
+
+.container{
+    background:#111111;
+    padding:20px;
+    margin:25px auto;
+    width:90%;
+    max-width:900px;
+    border-radius:15px;
+    box-shadow:0 0 20px rgba(212,175,55,0.3);
+}
+
+input, button, select{
+    padding:10px;
+    margin:6px;
+    width:85%;
+    border-radius:8px;
+    border:1px solid #d4af37;
+    background:#000;
+    color:#d4af37;
+}
+
+button{
+    background:#d4af37;
+    color:black;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#f0c75e;
+}
+
+.hidden{
+    display:none;
+}
+
+.admin-only{
+    display:none;
+}
+
+canvas{
+    margin-top:20px;
+    background:#111;
+    border-radius:10px;
+    padding:10px;
+}
+</style>
+</head>
+
+<body>
+
+<img src="logo.jpg" class="logo">
+<h2>🌿 Sistema Vivero 2.2.1</h2>
+
+<div class="container" id="loginDiv">
+<h3>🔐 Iniciar Sesión</h3>
+<input type="text" id="usuario" placeholder="Usuario">
+<input type="password" id="clave" placeholder="Contraseña">
+<button onclick="login()">Entrar</button>
+<p id="errorLogin"></p>
+</div>
+
+<div class="container hidden" id="sistema">
+
+<p>Usuario activo: <span id="usuarioActivo"></span></p>
+<button onclick="logout()">Cerrar sesión</button>
+
+<hr>
+
+<h3>💰 Venta</h3>
+<select id="ventaNombre"></select>
+<input type="number" id="ventaCantidad" placeholder="Cantidad">
+
+<label>
+<input type="checkbox" id="descuentoCheck"> Aplicar descuento
+</label>
+
+<div id="descuentoDiv" class="hidden">
+<input type="password" id="claveAdminDescuento" placeholder="Clave Admin">
+<input type="number" id="precioEspecial" placeholder="Precio especial">
+</div>
+
+<button onclick="registrarVenta()">Registrar Venta</button>
+
+<hr>
+
+<h3>📊 Dashboard de Ventas</h3>
+<button onclick="generarGraficas()">Actualizar Gráficas</button>
+
+<canvas id="graficaDia"></canvas>
+<canvas id="graficaPlantas"></canvas>
+
+</div>
+
+<script>
+
+// ===== USUARIOS =====
+const admins = ["César","Oswaldo","Hanalih","Sofia","Valeria"];
+const empleados = ["Emp1","Emp2","Emp3"];
+
+const claveAdmin = "ViverosRDM12";
+const claveEmpleado = "ViverosRDMempl";
+
+let usuarioActual = null;
+let rolActual = null;
+
+let plantas = JSON.parse(localStorage.getItem("plantas")) || {};
+let ventas = JSON.parse(localStorage.getItem("ventas")) || [];
+
+function guardar(){
+    localStorage.setItem("plantas", JSON.stringify(plantas));
+    localStorage.setItem("ventas", JSON.stringify(ventas));
+}
+
+function login(){
+    let user = document.getElementById("usuario").value;
+    let pass = document.getElementById("clave").value;
+
+    if(admins.includes(user) && pass === claveAdmin){
+        rolActual = "admin";
+    } 
+    else if(empleados.includes(user) && pass === claveEmpleado){
+        rolActual = "empleado";
+    } 
+    else{
+        document.getElementById("errorLogin").innerText="Credenciales incorrectas";
+        return;
+    }
+
+    usuarioActual = user;
+    document.getElementById("loginDiv").classList.add("hidden");
+    document.getElementById("sistema").classList.remove("hidden");
+    document.getElementById("usuarioActivo").innerText = user + " ("+rolActual+")";
+
+    actualizarSelect();
+}
+
+function logout(){
+    location.reload();
+}
+
+function actualizarSelect(){
+    let select = document.getElementById("ventaNombre");
+    select.innerHTML="";
+    for(let nombre in plantas){
+        let option = document.createElement("option");
+        option.value = nombre;
+        option.text = nombre;
+        select.appendChild(option);
+    }
+}
+
+document.getElementById("descuentoCheck").addEventListener("change", function(){
+    document.getElementById("descuentoDiv").classList.toggle("hidden");
+});
+
+function registrarVenta(){
+
+    let nombre = document.getElementById("ventaNombre").value;
+    let cantidad = parseInt(document.getElementById("ventaCantidad").value);
+
+    if(!plantas[nombre] || isNaN(cantidad) || cantidad<=0) return;
+
+    let precioAplicado = plantas[nombre].precioBase;
+
+    if(document.getElementById("descuentoCheck").checked){
+
+        let claveIngresada = document.getElementById("claveAdminDescuento").value;
+        let precioEspecial = parseFloat(document.getElementById("precioEspecial").value);
+
+        if(claveIngresada !== claveAdmin) return;
+        if(isNaN(precioEspecial) || precioEspecial<=0) return;
+
+        precioAplicado = precioEspecial;
+    }
+
+    if(plantas[nombre].inventario < cantidad) return;
+
+    plantas[nombre].inventario -= cantidad;
+
+    let venta = {
+        nombre,
+        cantidad,
+        precioAplicado,
+        total: cantidad*precioAplicado,
+        fecha: new Date().toLocaleString(),
+        usuario: usuarioActual
+    };
+
+    ventas.push(venta);
+    guardar();
+}
+
+// ===== GRÁFICAS =====
+let chartDia;
+let chartPlantas;
+
+function generarGraficas(){
+
+    let hoy = new Date().toLocaleDateString();
+    let ventasHoy = ventas.filter(v =>
+        new Date(v.fecha).toLocaleDateString() === hoy
+    );
+
+    let totalHoy = ventasHoy.reduce((sum,v)=>sum+v.total,0);
+
+    if(chartDia) chartDia.destroy();
+    if(chartPlantas) chartPlantas.destroy();
+
+    chartDia = new Chart(document.getElementById("graficaDia"),{
+        type:"bar",
+        data:{
+            labels:["Ventas Hoy"],
+            datasets:[{
+                label:"Total $",
+                data:[totalHoy],
+                backgroundColor:"#d4af37"
+            }]
+        }
+    });
+
+    let resumenPlantas = {};
+
+    ventasHoy.forEach(v=>{
+        if(!resumenPlantas[v.nombre]){
+            resumenPlantas[v.nombre]=0;
+        }
+        resumenPlantas[v.nombre]+=v.total;
+    });
+
+    chartPlantas = new Chart(document.getElementById("graficaPlantas"),{
+        type:"pie",
+        data:{
+            labels:Object.keys(resumenPlantas),
+            datasets:[{
+                data:Object.values(resumenPlantas),
+                backgroundColor:[
+                    "#d4af37","#f0c75e","#c9a227","#b8860b","#ffd700"
+                ]
+            }]
+        }
+    });
+}
+
+</script>
+
+</body>
+</html>
