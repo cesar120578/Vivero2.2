@@ -2,441 +2,277 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Viveros RDM - ADMIN 2.2 PRO</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>Viveros RDM 2.3 PRO</title>
 
 <style>
 body{
-    font-family: Arial;
-    background:#000;
-    color:#d4af37;
+    background:black;
+    color:gold;
+    font-family:Arial;
     text-align:center;
 }
-
-.logo{
-    width:200px;
-    margin-top:20px;
-    filter: drop-shadow(0 0 8px #d4af37);
+h2{
+    border-bottom:1px solid gold;
+    padding-bottom:5px;
 }
-
-.container{
-    background:#111;
-    margin:20px auto;
-    padding:20px;
-    width:95%;
-    max-width:1000px;
-    border-radius:15px;
-    box-shadow:0 0 20px rgba(212,175,55,0.3);
-}
-
-input, select, button{
-    width:90%;
-    padding:10px;
+input,select,button{
+    padding:8px;
     margin:5px;
-    border-radius:8px;
-    border:1px solid #d4af37;
-    background:#000;
-    color:#d4af37;
+    border-radius:6px;
+    border:none;
 }
-
 button{
-    background:#d4af37;
+    background:gold;
     color:black;
     font-weight:bold;
     cursor:pointer;
 }
-
 button:hover{
-    background:#f0c75e;
+    background:#d4af37;
 }
-
 .section{
-    margin-top:20px;
+    margin:20px auto;
+    width:80%;
+    border:1px solid gold;
     padding:15px;
-    border:1px solid #d4af37;
     border-radius:10px;
 }
-
-.hidden{ display:none; }
-
-#mensaje{
-    padding:10px;
-    margin-bottom:10px;
-    border-radius:8px;
+.hidden{
     display:none;
+}
+ul{
+    list-style:none;
+    padding:0;
+}
+li{
+    margin:3px 0;
+}
+.mensaje{
+    margin-top:10px;
     font-weight:bold;
 }
-
-.exito{ background:#1e7a3b; color:white; }
-.error{ background:#a83232; color:white; }
-
-.alerta{ color:red; font-weight:bold; }
-
-canvas{
-    margin-top:20px;
-    background:#111;
-    border-radius:10px;
-    padding:10px;
-}
+.error{ color:red; }
+.exito{ color:lime; }
 </style>
 </head>
 
 <body>
 
-<img src="logo.jpg" class="logo">
-<h2>🌿 Viveros RDM - ADMIN 2.2 PRO</h2>
+<h1>🌿 VIVEROS RDM 2.3 PRO 🌿</h1>
 
-<div class="container" id="loginDiv">
-<h3>Login Administrador</h3>
-<input type="text" id="usuario">
-<input type="password" id="clave">
-<button onclick="login()">Entrar</button>
-<p id="errorLogin"></p>
+<div class="mensaje" id="mensaje"></div>
+
+<!-- AGREGAR PLANTA -->
+<div class="section">
+<h2>Agregar Planta</h2>
+<button onclick="toggle('agregarDiv')">Mostrar / Ocultar</button>
+
+<div id="agregarDiv" class="hidden">
+
+<input id="nombreNueva" placeholder="Nombre">
+<input id="precioNueva" type="number" placeholder="Precio">
+<input id="cantidadNueva" type="number" placeholder="Cantidad">
+<button onclick="agregarPlanta()">Agregar</button>
+
+<h4>Plantas existentes</h4>
+<ul id="listaExistente"></ul>
+
 </div>
-
-<div class="container hidden" id="panel">
-
-<p>Usuario: <span id="usuarioActivo"></span></p>
-<button onclick="logout()">Cerrar sesión</button>
-
-<div id="mensaje"></div>
+</div>
 
 <!-- INVENTARIO -->
 <div class="section">
-<h3 onclick="toggle('inventarioPanel')">📦 Gestión de Inventario</h3>
-<div id="inventarioPanel" class="hidden">
-
-<h4>Agregar Planta</h4>
-<input type="text" id="nombreNueva" placeholder="Nombre">
-<input type="number" id="precioNueva" placeholder="Precio">
-<input type="number" id="cantidadNueva" placeholder="Cantidad inicial">
-<button onclick="agregarPlanta()">Agregar</button>
-
-<hr>
-
-<h4>Reabastecer</h4>
-<select id="reabastecerNombre"></select>
-<input type="number" id="cantidadReabastecer" placeholder="Cantidad">
-<button onclick="reabastecer()">Reabastecer</button>
-
-<hr>
-<button onclick="mostrarInventario()">Actualizar Inventario</button>
-<div id="inventario"></div>
-
+<h2>Inventario</h2>
+<button onclick="toggle('inventarioDiv')">Mostrar / Ocultar</button>
+<div id="inventarioDiv" class="hidden">
+<ul id="listaInventario"></ul>
 </div>
 </div>
 
 <!-- VENTAS -->
 <div class="section">
-<h3 onclick="toggle('ventasPanel')">💰 Ventas</h3>
-<div id="ventasPanel" class="hidden">
+<h2>Ventas</h2>
+<button onclick="toggle('ventasDiv')">Mostrar / Ocultar</button>
+
+<div id="ventasDiv" class="hidden">
+
+<input id="buscarVenta" placeholder="Buscar planta..." onkeyup="filtrarPlantas()">
 
 <select id="ventaNombre"></select>
-<input type="number" id="ventaCantidad" placeholder="Cantidad">
-
-<label>
-<input type="checkbox" id="descuentoCheck"> Aplicar descuento
-</label>
-
-<div id="descuentoDiv" class="hidden">
-<input type="password" id="claveAdminDescuento" placeholder="Clave admin">
-<input type="number" id="precioEspecial" placeholder="Nuevo precio">
-</div>
-
+<input id="ventaCantidad" type="number" placeholder="Cantidad">
 <button onclick="registrarVenta()">Registrar Venta</button>
+
+<ul id="listaVentas"></ul>
 
 </div>
 </div>
 
 <!-- REPORTES -->
 <div class="section">
-<h3 onclick="toggle('reportesPanel')">📊 Reportes y Dashboard</h3>
-<div id="reportesPanel" class="hidden">
+<h2>Reportes / Dashboard</h2>
+<button onclick="toggle('reporteDiv')">Mostrar / Ocultar</button>
 
-<div id="resumen"></div>
-<button onclick="generarGraficas()">Actualizar Gráficas</button>
-
-<canvas id="graficaDia"></canvas>
-<canvas id="graficaPlantas"></canvas>
-
+<div id="reporteDiv" class="hidden">
+<h3>Total generado: $<span id="totalDinero">0</span></h3>
+<ul id="desgloseVentas"></ul>
 </div>
-</div>
-
 </div>
 
 <script>
 
-// ===== CONFIG =====
-const admins=["César","Oswaldo","Hanalih","Sofia","Valeria"];
-const claveAdmin="ViverosRDM12";
+let plantas = JSON.parse(localStorage.getItem("plantas")) || {};
+let ventas = JSON.parse(localStorage.getItem("ventas")) || [];
 
-let usuarioActual=null;
-let plantas=JSON.parse(localStorage.getItem("plantas"))||{};
-let ventas=JSON.parse(localStorage.getItem("ventas"))||[];
-
-// ===== UTILIDADES =====
 function guardar(){
     localStorage.setItem("plantas",JSON.stringify(plantas));
     localStorage.setItem("ventas",JSON.stringify(ventas));
 }
 
 function mostrarMensaje(texto,tipo){
-    mensaje.innerText=texto;
-    mensaje.className=tipo;
-    mensaje.style.display="block";
-    setTimeout(()=>mensaje.style.display="none",3000);
+    let m = document.getElementById("mensaje");
+    m.innerText = texto;
+    m.className = "mensaje " + tipo;
+    setTimeout(()=>{m.innerText="";},3000);
 }
 
 function toggle(id){
     document.getElementById(id).classList.toggle("hidden");
 }
 
-function obtenerNombresOrdenados(){
-    return Object.keys(plantas).sort((a,b)=>a.localeCompare(b));
+function ordenarAlfabetico(obj){
+    return Object.keys(obj).sort((a,b)=>a.localeCompare(b));
 }
 
-// ===== LOGIN =====
-function login(){
-    if(!admins.includes(usuario.value)||clave.value!==claveAdmin){
-        errorLogin.innerText="Credenciales incorrectas";
-        return;
-    }
-    usuarioActual=usuario.value;
-    loginDiv.classList.add("hidden");
-    panel.classList.remove("hidden");
-    usuarioActivo.innerText=usuarioActual;
-    actualizarSelects();
-    actualizarResumen();
-}
-
-function logout(){ location.reload(); }
-
-// ===== ACTUALIZAR SELECTS ORDENADOS =====
-function actualizarSelects(){
-    let nombres=obtenerNombresOrdenados();
-
-    ventaNombre.innerHTML="";
-    reabastecerNombre.innerHTML="";
-
-    nombres.forEach(nombre=>{
-        ventaNombre.innerHTML+=`<option>${nombre}</option>`;
-        reabastecerNombre.innerHTML+=`<option>${nombre}</option>`;
+function actualizarListaExistente(){
+    let ul = document.getElementById("listaExistente");
+    ul.innerHTML="";
+    ordenarAlfabetico(plantas).forEach(nombre=>{
+        let li=document.createElement("li");
+        li.innerText=nombre;
+        ul.appendChild(li);
     });
 }
 
-// ===== AGREGAR PLANTA =====
+function actualizarInventario(){
+    let ul=document.getElementById("listaInventario");
+    ul.innerHTML="";
+    ordenarAlfabetico(plantas).forEach(nombre=>{
+        let li=document.createElement("li");
+        li.innerText=`${nombre} - Stock: ${plantas[nombre].inventario} - Precio: $${plantas[nombre].precio}`;
+        ul.appendChild(li);
+    });
+}
+
+function actualizarSelect(){
+    let select=document.getElementById("ventaNombre");
+    select.innerHTML="";
+    ordenarAlfabetico(plantas).forEach(nombre=>{
+        let option=document.createElement("option");
+        option.value=nombre;
+        option.text=nombre;
+        select.appendChild(option);
+    });
+}
+
 function agregarPlanta(){
+    let nombre=document.getElementById("nombreNueva").value.trim();
+    let precio=document.getElementById("precioNueva").value;
+    let cantidad=document.getElementById("cantidadNueva").value;
 
-    let nombre=nombreNueva.value.trim();
-    let precioInput=precioNueva.value;
-    let cantidadInput=cantidadNueva.value;
-
-    if(nombre===""){
-        mostrarMensaje("Ingresa el nombre de la planta 🌿","error");
-        return;
-    }
-
-    if(precioInput===""){
-        mostrarMensaje("Ingresa el precio de la planta 💲","error");
-        return;
-    }
-
-    if(cantidadInput===""){
-        mostrarMensaje("Ingresa la cantidad de plantas 📦","error");
-        return;
-    }
-
-    let precio=parseFloat(precioInput);
-    let cantidad=parseInt(cantidadInput);
-
-    if(isNaN(precio)||precio<=0){
-        mostrarMensaje("El precio debe ser mayor a 0 💲","error");
-        return;
-    }
-
-    if(isNaN(cantidad)||cantidad<0){
-        mostrarMensaje("La cantidad no puede ser negativa 📦","error");
-        return;
-    }
+    if(nombre===""){ mostrarMensaje("Ingresa el nombre","error"); return;}
+    if(precio===""){ mostrarMensaje("Ingresa el precio","error"); return;}
+    if(cantidad===""){ mostrarMensaje("Ingresa la cantidad","error"); return;}
 
     if(plantas[nombre]){
         mostrarMensaje("Esa planta ya existe","error");
         return;
     }
 
-    plantas[nombre]={precio,inventario:cantidad,vendidas:0};
+    plantas[nombre]={
+        precio:parseFloat(precio),
+        inventario:parseInt(cantidad)
+    };
 
     guardar();
-    actualizarSelects();
+    actualizarTodo();
 
-    nombreNueva.value="";
-    precioNueva.value="";
-    cantidadNueva.value="";
+    document.getElementById("nombreNueva").value="";
+    document.getElementById("precioNueva").value="";
+    document.getElementById("cantidadNueva").value="";
 
-    mostrarMensaje("Planta agregada correctamente 🌿","exito");
+    mostrarMensaje("Planta agregada correctamente","exito");
 }
-
-// ===== REABASTECER =====
-function reabastecer(){
-
-    let nombre=reabastecerNombre.value;
-    let cantidadInput=cantidadReabastecer.value;
-
-    if(nombre===""){
-        mostrarMensaje("Selecciona una planta 🌱","error");
-        return;
-    }
-
-    if(cantidadInput===""){
-        mostrarMensaje("Ingresa la cantidad a reabastecer 📦","error");
-        return;
-    }
-
-    let cantidad=parseInt(cantidadInput);
-
-    if(isNaN(cantidad)||cantidad<=0){
-        mostrarMensaje("Cantidad inválida 📦","error");
-        return;
-    }
-
-    plantas[nombre].inventario+=cantidad;
-
-    guardar();
-    mostrarInventario();
-
-    cantidadReabastecer.value="";
-
-    mostrarMensaje("Stock actualizado correctamente 📦","exito");
-}
-
-// ===== REGISTRAR VENTA =====
-descuentoCheck.addEventListener("change",()=>{
-    descuentoDiv.classList.toggle("hidden");
-});
 
 function registrarVenta(){
+    let nombre=document.getElementById("ventaNombre").value;
+    let cantidad=document.getElementById("ventaCantidad").value;
 
-    let nombre=ventaNombre.value;
-    let cantidadInput=ventaCantidad.value;
+    if(cantidad===""){ mostrarMensaje("Ingresa la cantidad","error"); return;}
+    cantidad=parseInt(cantidad);
 
-    if(nombre===""){
-        mostrarMensaje("Selecciona una planta 🌿","error");
+    if(plantas[nombre].inventario < cantidad){
+        mostrarMensaje("No hay suficiente stock","error");
         return;
-    }
-
-    if(cantidadInput===""){
-        mostrarMensaje("Ingresa la cantidad a vender 💰","error");
-        return;
-    }
-
-    let cantidad=parseInt(cantidadInput);
-
-    if(isNaN(cantidad)||cantidad<=0){
-        mostrarMensaje("Cantidad inválida 💰","error");
-        return;
-    }
-
-    if(plantas[nombre].inventario<cantidad){
-        mostrarMensaje("Inventario insuficiente","error");
-        return;
-    }
-
-    let precio=plantas[nombre].precio;
-
-    if(descuentoCheck.checked){
-        if(claveAdminDescuento.value!==claveAdmin){
-            mostrarMensaje("Clave incorrecta 🔐","error");
-            return;
-        }
-        let nuevo=parseFloat(precioEspecial.value);
-        if(isNaN(nuevo)||nuevo<=0){
-            mostrarMensaje("Nuevo precio inválido 💲","error");
-            return;
-        }
-        precio=nuevo;
     }
 
     plantas[nombre].inventario-=cantidad;
-    plantas[nombre].vendidas+=cantidad;
 
     ventas.push({
         nombre,
         cantidad,
-        precio,
-        total:cantidad*precio,
-        fecha:new Date().toLocaleString(),
-        usuario:usuarioActual
+        precio:plantas[nombre].precio,
+        total:cantidad*plantas[nombre].precio,
+        fecha:new Date().toLocaleString()
     });
 
     guardar();
-    actualizarResumen();
-    mostrarInventario();
+    actualizarTodo();
 
-    ventaCantidad.value="";
-    precioEspecial.value="";
-    claveAdminDescuento.value="";
-    descuentoCheck.checked=false;
-    descuentoDiv.classList.add("hidden");
+    document.getElementById("ventaCantidad").value="";
+    document.getElementById("buscarVenta").value="";
 
-    mostrarMensaje("Venta registrada correctamente 💰","exito");
+    mostrarMensaje("Venta registrada","exito");
 }
 
-// ===== INVENTARIO ORDENADO =====
-function mostrarInventario(){
-
-    inventario.innerHTML="";
-    let nombres=obtenerNombresOrdenados();
-
-    nombres.forEach(nombre=>{
-        let p=plantas[nombre];
-        let alerta=p.inventario<=10?"<span class='alerta'>⚠ Bajo stock</span>":"";
-        inventario.innerHTML+=`
-        <p><strong>${nombre}</strong><br>
-        Precio: $${p.precio}<br>
-        Inventario: ${p.inventario} ${alerta}<br>
-        Vendidas: ${p.vendidas}</p><hr>
-        `;
+function filtrarPlantas(){
+    let texto=document.getElementById("buscarVenta").value.toLowerCase();
+    let select=document.getElementById("ventaNombre");
+    select.innerHTML="";
+    ordenarAlfabetico(plantas).forEach(nombre=>{
+        if(nombre.toLowerCase().includes(texto)){
+            let option=document.createElement("option");
+            option.value=nombre;
+            option.text=nombre;
+            select.appendChild(option);
+        }
     });
 }
 
-// ===== RESUMEN =====
-function actualizarResumen(){
-    let hoy=new Date().toLocaleDateString();
-    let ventasHoy=ventas.filter(v=>new Date(v.fecha).toLocaleDateString()===hoy);
-    let total=ventasHoy.reduce((s,v)=>s+v.total,0);
-    let cantidad=ventasHoy.reduce((s,v)=>s+v.cantidad,0);
-    resumen.innerHTML=`Vendidas hoy: ${cantidad}<br>Total hoy: $${total.toFixed(2)}`;
+function actualizarReportes(){
+    let total=0;
+    let ul=document.getElementById("desgloseVentas");
+    ul.innerHTML="";
+
+    ventas.forEach(v=>{
+        total+=v.total;
+        let li=document.createElement("li");
+        li.innerText=`${v.nombre} - ${v.cantidad} - $${v.precio} - Total: $${v.total}`;
+        ul.appendChild(li);
+    });
+
+    document.getElementById("totalDinero").innerText=total;
 }
 
-// ===== GRAFICAS =====
-let chart1,chart2;
-
-function generarGraficas(){
-
-    let hoy=new Date().toLocaleDateString();
-    let ventasHoy=ventas.filter(v=>new Date(v.fecha).toLocaleDateString()===hoy);
-    let total=ventasHoy.reduce((s,v)=>s+v.total,0);
-
-    if(chart1) chart1.destroy();
-    if(chart2) chart2.destroy();
-
-    chart1=new Chart(graficaDia,{
-        type:"bar",
-        data:{labels:["Hoy"],datasets:[{data:[total],backgroundColor:"#d4af37"}]}
-    });
-
-    let resumenPlantas={};
-    ventasHoy.forEach(v=>{
-        resumenPlantas[v.nombre]=(resumenPlantas[v.nombre]||0)+v.total;
-    });
-
-    chart2=new Chart(graficaPlantas,{
-        type:"pie",
-        data:{labels:Object.keys(resumenPlantas).sort(),
-              datasets:[{data:Object.keys(resumenPlantas).sort().map(n=>resumenPlantas[n])}]}
-    });
+function actualizarTodo(){
+    actualizarListaExistente();
+    actualizarInventario();
+    actualizarSelect();
+    actualizarReportes();
 }
+
+actualizarTodo();
 
 </script>
+
 </body>
 </html>
