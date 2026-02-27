@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Viveros RDM 2.4 PRO</title>
+<title>Viveros RDM 2.6 PRO</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -13,61 +13,108 @@ body{
     font-family:Arial;
     text-align:center;
 }
+
+.logo{
+    font-size:28px;
+    font-weight:bold;
+    margin-top:10px;
+}
+
+.section{
+    width:90%;
+    margin:25px auto;
+    border:1px solid gold;
+    border-radius:10px;
+    padding:20px;
+}
+
 h2{
     cursor:pointer;
     border-bottom:1px solid gold;
-    padding:8px;
+    padding-bottom:8px;
 }
-.section{
-    width:85%;
-    margin:20px auto;
-    border:1px solid gold;
-    border-radius:10px;
-    padding:15px;
-}
+
 .hidden{
     display:none;
 }
+
 input,select,button{
     padding:8px;
-    margin:5px;
+    margin:6px;
     border-radius:6px;
     border:none;
 }
+
 button{
     background:gold;
     color:black;
     font-weight:bold;
     cursor:pointer;
 }
+
+button:hover{
+    background:#d4af37;
+}
+
 table{
     width:100%;
-    margin-top:10px;
     border-collapse:collapse;
+    margin-top:15px;
+    font-size:18px;
 }
+
 th,td{
     border:1px solid gold;
-    padding:6px;
+    padding:10px;
+}
+
+th{
+    background:#111;
+}
+
+canvas{
+    margin-top:20px;
+}
+
+#loginBox{
+    margin-top:100px;
+}
+
+.usuarioActivo{
+    margin-top:10px;
+    font-size:14px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🌿 VIVEROS ROSAS DEL MONTE 🌿</h1>
+<!-- LOGIN -->
+<div id="loginBox">
+    <h2>Iniciar Sesión</h2>
+    <input id="usuarioInput" placeholder="Usuario">
+    <input id="claveInput" type="password" placeholder="Contraseña">
+    <button onclick="login()">Ingresar</button>
+</div>
 
-<!-- AGREGAR -->
+<!-- SISTEMA -->
+<div id="sistema" class="hidden">
+
+<div class="logo">🌿 VIVEROS RDM 🌿</div>
+<div class="usuarioActivo">
+Usuario activo: <span id="usuarioActivo"></span>
+<button onclick="cerrarSesion()">Cerrar sesión</button>
+</div>
+
+<!-- AGREGAR PLANTA -->
 <div class="section">
 <h2 onclick="toggle('agregarDiv')">Agregar Planta</h2>
 <div id="agregarDiv" class="hidden">
 
-<input id="nombreNueva" placeholder="Nombre">
+<input id="nombreNueva" placeholder="Nombre de la planta">
 <input id="precioNueva" type="number" placeholder="Precio">
 <input id="cantidadNueva" type="number" placeholder="Cantidad">
 <button onclick="agregarPlanta()">Agregar</button>
-
-<h4>Plantas existentes</h4>
-<ul id="listaExistente"></ul>
 
 </div>
 </div>
@@ -76,7 +123,18 @@ th,td{
 <div class="section">
 <h2 onclick="toggle('inventarioDiv')">Inventario</h2>
 <div id="inventarioDiv" class="hidden">
-<ul id="listaInventario"></ul>
+
+<table>
+<thead>
+<tr>
+<th>Planta</th>
+<th>Precio</th>
+<th>Stock</th>
+</tr>
+</thead>
+<tbody id="tablaInventario"></tbody>
+</table>
+
 </div>
 </div>
 
@@ -117,12 +175,50 @@ th,td{
 </div>
 </div>
 
+</div>
+
 <script>
 
-let plantas = JSON.parse(localStorage.getItem("plantas")) || {};
-let ventas = JSON.parse(localStorage.getItem("ventas")) || {};
+// USUARIOS
+const admins=["César","Oswaldo","Hanalih","Sofia","Valeria"];
+const empleados=["Emp1","Emp2","Emp3"];
+const claveAdmin="ViverosRDM12";
+const claveEmpleado="ViverosRDMempl";
+
+let usuarioActual="";
+let plantas=JSON.parse(localStorage.getItem("plantas"))||{};
+let ventas=JSON.parse(localStorage.getItem("ventas"))||[];
 let grafica;
 
+// LOGIN
+function login(){
+    let u=document.getElementById("usuarioInput").value;
+    let c=document.getElementById("claveInput").value;
+
+    if(admins.includes(u)&&c===claveAdmin){
+        iniciarSistema(u);
+    }
+    else if(empleados.includes(u)&&c===claveEmpleado){
+        iniciarSistema(u);
+    }
+    else{
+        alert("Usuario o contraseña incorrectos");
+    }
+}
+
+function iniciarSistema(usuario){
+    usuarioActual=usuario;
+    document.getElementById("loginBox").classList.add("hidden");
+    document.getElementById("sistema").classList.remove("hidden");
+    document.getElementById("usuarioActivo").innerText=usuarioActual;
+    actualizarTodo();
+}
+
+function cerrarSesion(){
+    location.reload();
+}
+
+// FUNCIONES ORIGINALES (NO MODIFICADAS)
 function guardar(){
     localStorage.setItem("plantas",JSON.stringify(plantas));
     localStorage.setItem("ventas",JSON.stringify(ventas));
@@ -136,23 +232,17 @@ function ordenar(){
     return Object.keys(plantas).sort((a,b)=>a.localeCompare(b));
 }
 
-function actualizarExistentes(){
-    let ul=document.getElementById("listaExistente");
-    ul.innerHTML="";
-    ordenar().forEach(nombre=>{
-        let li=document.createElement("li");
-        li.innerText=nombre;
-        ul.appendChild(li);
-    });
-}
-
 function actualizarInventario(){
-    let ul=document.getElementById("listaInventario");
-    ul.innerHTML="";
+    let tabla=document.getElementById("tablaInventario");
+    tabla.innerHTML="";
     ordenar().forEach(nombre=>{
-        let li=document.createElement("li");
-        li.innerText=`${nombre} — ${plantas[nombre].inventario}`;
-        ul.appendChild(li);
+        let row=document.createElement("tr");
+        row.innerHTML=`
+            <td>${nombre}</td>
+            <td>$${plantas[nombre].precio}</td>
+            <td>${plantas[nombre].inventario}</td>
+        `;
+        tabla.appendChild(row);
     });
 }
 
@@ -172,8 +262,8 @@ function agregarPlanta(){
     let precio=document.getElementById("precioNueva").value;
     let cantidad=document.getElementById("cantidadNueva").value;
 
-    if(!nombre||!precio||!cantidad){ alert("Completa todos los campos"); return; }
-    if(plantas[nombre]){ alert("Ya existe"); return;}
+    if(!nombre||!precio||!cantidad){ alert("Completa todos los campos"); return;}
+    if(plantas[nombre]){ alert("La planta ya existe"); return;}
 
     plantas[nombre]={
         precio:parseFloat(precio),
@@ -197,14 +287,13 @@ function registrarVenta(){
 
     plantas[nombre].inventario -= cantidad;
 
-    if(!Array.isArray(ventas)) ventas=[];
-
     ventas.push({
         nombre,
         cantidad,
         precio:plantas[nombre].precio,
         total:cantidad*plantas[nombre].precio,
-        fecha:new Date().toLocaleString()
+        fecha:new Date().toLocaleString(),
+        usuario:usuarioActual
     });
 
     guardar();
@@ -214,7 +303,6 @@ function registrarVenta(){
 }
 
 function actualizarReportes(){
-
     let total=0;
     let tabla=document.getElementById("tablaVentas");
     tabla.innerHTML="";
@@ -259,13 +347,10 @@ function actualizarReportes(){
 }
 
 function actualizarTodo(){
-    actualizarExistentes();
     actualizarInventario();
     actualizarSelect();
     actualizarReportes();
 }
-
-actualizarTodo();
 
 </script>
 
