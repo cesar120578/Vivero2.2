@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Viveros RDM 2.7 PRO</title>
+<title>Viveros RDM 2.9 PRO</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -120,6 +120,35 @@ Usuario activo: <span id="usuarioActivo"></span>
 </div>
 </div>
 
+<!-- REABASTECER -->
+<div class="section">
+<h2 onclick="toggle('reabastecerDiv')">Reabastecer Inventario</h2>
+<div id="reabastecerDiv" class="hidden">
+
+<select id="reabastecerNombre"></select>
+<input id="reabastecerCantidad" type="number" placeholder="Cantidad a agregar">
+<button onclick="reabastecer()">Reabastecer</button>
+
+</div>
+</div>
+
+<!-- EDITAR / ELIMINAR INVENTARIO -->
+<div class="section">
+<h2 onclick="toggle('editarDiv')">Editar / Eliminar Planta</h2>
+<div id="editarDiv" class="hidden">
+
+<select id="editarNombre" onchange="cargarDatosEdicion()"></select>
+<br>
+<input id="editarNuevoNombre" placeholder="Nuevo nombre">
+<input id="editarNuevoPrecio" type="number" placeholder="Nuevo precio">
+<input id="editarNuevaCantidad" type="number" placeholder="Nueva cantidad">
+<br>
+<button onclick="guardarCambios()">Guardar Cambios</button>
+<button onclick="eliminarPlanta()">Eliminar Planta</button>
+
+</div>
+</div>
+
 <!-- INVENTARIO -->
 <div class="section">
 <h2 onclick="toggle('inventarioDiv')">Inventario</h2>
@@ -219,15 +248,11 @@ function cerrarSesion(){
     location.reload();
 }
 
-// 🔐 RESTABLECER SISTEMA
+// RESTABLECER
 function restablecerSistema(){
-
     let codigo = prompt("Ingresa el código de restablecimiento:");
-
     if(codigo === "241412"){
-
         let confirmar = confirm("¿Seguro que deseas borrar toda la información?");
-
         if(confirmar){
             plantas = {};
             ventas = [];
@@ -236,13 +261,11 @@ function restablecerSistema(){
             actualizarTodo();
             alert("Sistema restablecido correctamente");
         }
-
     }else{
         alert("Código incorrecto");
     }
 }
 
-// FUNCIONES ORIGINALES
 function guardar(){
     localStorage.setItem("plantas",JSON.stringify(plantas));
     localStorage.setItem("ventas",JSON.stringify(ventas));
@@ -271,14 +294,59 @@ function actualizarInventario(){
 }
 
 function actualizarSelect(){
-    let select=document.getElementById("ventaNombre");
-    select.innerHTML="";
-    ordenar().forEach(nombre=>{
-        let option=document.createElement("option");
-        option.value=nombre;
-        option.text=nombre;
-        select.appendChild(option);
+    let selects=["ventaNombre","reabastecerNombre","editarNombre"];
+    selects.forEach(id=>{
+        let select=document.getElementById(id);
+        select.innerHTML="";
+        ordenar().forEach(nombre=>{
+            let option=document.createElement("option");
+            option.value=nombre;
+            option.text=nombre;
+            select.appendChild(option);
+        });
     });
+}
+
+// EDITAR
+function cargarDatosEdicion(){
+    let nombre=document.getElementById("editarNombre").value;
+    document.getElementById("editarNuevoNombre").value=nombre;
+    document.getElementById("editarNuevoPrecio").value=plantas[nombre].precio;
+    document.getElementById("editarNuevaCantidad").value=plantas[nombre].inventario;
+}
+
+function guardarCambios(){
+    let nombreActual=document.getElementById("editarNombre").value;
+    let nuevoNombre=document.getElementById("editarNuevoNombre").value.trim();
+    let nuevoPrecio=parseFloat(document.getElementById("editarNuevoPrecio").value);
+    let nuevaCantidad=parseInt(document.getElementById("editarNuevaCantidad").value);
+
+    if(!nuevoNombre||!nuevoPrecio||nuevaCantidad<0){
+        alert("Datos inválidos");
+        return;
+    }
+
+    delete plantas[nombreActual];
+
+    plantas[nuevoNombre]={
+        precio:nuevoPrecio,
+        inventario:nuevaCantidad
+    };
+
+    guardar();
+    actualizarTodo();
+    alert("Cambios guardados");
+}
+
+function eliminarPlanta(){
+    let nombre=document.getElementById("editarNombre").value;
+    let confirmar=confirm("¿Seguro que deseas eliminar esta planta?");
+    if(confirmar){
+        delete plantas[nombre];
+        guardar();
+        actualizarTodo();
+        alert("Planta eliminada");
+    }
 }
 
 function agregarPlanta(){
@@ -300,6 +368,20 @@ function agregarPlanta(){
     nombreNueva.value="";
     precioNueva.value="";
     cantidadNueva.value="";
+}
+
+function reabastecer(){
+    let nombre=document.getElementById("reabastecerNombre").value;
+    let cantidad=parseInt(document.getElementById("reabastecerCantidad").value);
+
+    if(!cantidad||cantidad<=0){ alert("Cantidad inválida"); return;}
+
+    plantas[nombre].inventario += cantidad;
+
+    guardar();
+    actualizarTodo();
+
+    reabastecerCantidad.value="";
 }
 
 function registrarVenta(){
