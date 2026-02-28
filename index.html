@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Viveros RDM 2.6 PRO</title>
+<title>Viveros RDM 2.7 PRO</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -104,6 +104,7 @@ canvas{
 <div class="usuarioActivo">
 Usuario activo: <span id="usuarioActivo"></span>
 <button onclick="cerrarSesion()">Cerrar sesión</button>
+<button onclick="restablecerSistema()">Restablecer Sistema</button>
 </div>
 
 <!-- AGREGAR PLANTA -->
@@ -218,7 +219,30 @@ function cerrarSesion(){
     location.reload();
 }
 
-// FUNCIONES ORIGINALES (NO MODIFICADAS)
+// 🔐 RESTABLECER SISTEMA
+function restablecerSistema(){
+
+    let codigo = prompt("Ingresa el código de restablecimiento:");
+
+    if(codigo === "241412"){
+
+        let confirmar = confirm("¿Seguro que deseas borrar toda la información?");
+
+        if(confirmar){
+            plantas = {};
+            ventas = [];
+            localStorage.removeItem("plantas");
+            localStorage.removeItem("ventas");
+            actualizarTodo();
+            alert("Sistema restablecido correctamente");
+        }
+
+    }else{
+        alert("Código incorrecto");
+    }
+}
+
+// FUNCIONES ORIGINALES
 function guardar(){
     localStorage.setItem("plantas",JSON.stringify(plantas));
     localStorage.setItem("ventas",JSON.stringify(ventas));
