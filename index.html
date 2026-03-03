@@ -411,6 +411,11 @@ window.agregarPlanta = async function(){
     registrarHistorial("Agregar",`Se agregó ${n} (${c})`);
     await guardar();
     actualizarTodo();
+
+    // 🔹 LIMPIAR INPUTS
+    nombreNueva.value="";
+    precioNueva.value="";
+    cantidadNueva.value="";
 }
 
 
@@ -426,6 +431,9 @@ window.reabastecer = async function(){
     registrarHistorial("Reabastecer",`${n} +${c}`);
     await guardar();
     actualizarTodo();
+
+    // 🔹 LIMPIAR INPUT
+    reabastecerCantidad.value="";
 }
 
 
@@ -453,6 +461,9 @@ window.registrarVenta = async function(){
 
     await guardar();
     actualizarTodo();
+
+    // 🔹 LIMPIAR INPUT
+    ventaCantidad.value="";
 }
 
 
