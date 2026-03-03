@@ -395,7 +395,225 @@ window.eliminarPlanta = async function(){
     await guardar();
     actualizarTodo();
 }
+/* ================= FUNCIONES FALTANTES ================= */
 
+/* AGREGAR PLANTA */
+window.agregarPlanta = async function(){
+    let n=nombreNueva.value.trim();
+    let p=parseFloat(precioNueva.value);
+    let c=parseInt(cantidadNueva.value);
+
+    if(!n||!p||!c) return alert("Datos inválidos");
+    if(plantas[n]) return alert("Ya existe");
+
+    plantas[n]={precio:p,inventario:c};
+
+    registrarHistorial("Agregar",`Se agregó ${n} (${c})`);
+    await guardar();
+    actualizarTodo();
+}
+
+
+/* REABASTECER */
+window.reabastecer = async function(){
+    let n=reabastecerNombre.value;
+    let c=parseInt(reabastecerCantidad.value);
+
+    if(!c||c<=0) return alert("Cantidad inválida");
+
+    plantas[n].inventario+=c;
+
+    registrarHistorial("Reabastecer",`${n} +${c}`);
+    await guardar();
+    actualizarTodo();
+}
+
+
+/* REGISTRAR VENTA */
+window.registrarVenta = async function(){
+    let n=ventaNombre.value;
+    let c=parseInt(ventaCantidad.value);
+
+    if(!c||c<=0||plantas[n].inventario<c) return alert("Error");
+
+    plantas[n].inventario-=c;
+
+    let ventaObj={
+        nombre:n,
+        cantidad:c,
+        precio:plantas[n].precio,
+        total:c*plantas[n].precio,
+        fecha:new Date().toLocaleString(),
+        usuario:usuarioActual
+    };
+
+    ventas.push(ventaObj);
+    ventasDia.push(ventaObj);
+    ventasHistorico.push(ventaObj);
+
+    await guardar();
+    actualizarTodo();
+}
+
+
+/* CORTE DEL DÍA */
+window.corteDelDia = async function(){
+    if(ventasDia.length===0) return alert("No hay ventas hoy");
+
+    registrarHistorial("Corte del Día","Cierre con "+ventasDia.length+" ventas");
+
+    ventasDia=[];
+    await guardar();
+    actualizarReportes();
+
+    alert("Corte realizado correctamente");
+}
+
+
+/* RESTABLECER SISTEMA */
+window.restablecerSistema = async function(){
+    let codigo=prompt("Código:");
+
+    if(codigo==="241412"){
+        plantas={};
+        ventas=[];
+        ventasDia=[];
+        ventasHistorico=[];
+        historial=[];
+
+        await guardar();
+
+        alert("Sistema reiniciado");
+        location.reload();
+    }
+}
+
+
+/* ================= REPORTES COMPLETOS ================= */
+
+function actualizarReportes(){
+
+/* DÍA */
+let totalD=0;
+tablaDia.innerHTML="";
+let conteoDia={};
+
+ventasDia.forEach(v=>{
+    totalD+=v.total;
+
+    tablaDia.innerHTML+=`
+    <tr>
+    <td>${v.nombre}</td>
+    <td>${v.cantidad}</td>
+    <td>$${v.precio}</td>
+    <td>$${v.total}</td>
+    <td>${v.fecha}</td>
+    </tr>`;
+
+    conteoDia[v.nombre]=(conteoDia[v.nombre]||0)+v.cantidad;
+});
+
+totalDia.innerText=totalD;
+
+if(graficaDia) graficaDia.destroy();
+
+graficaDia=new Chart(document.getElementById("graficaDia"),{
+    type:"bar",
+    data:{
+        labels:Object.keys(conteoDia),
+        datasets:[{
+            label:"Ventas del Día",
+            data:Object.values(conteoDia)
+        }]
+    }
+});
+
+
+/* SEMANA */
+let totalS=0;
+tablaSemana.innerHTML="";
+let conteoSemana={};
+let hoy=new Date();
+
+ventasHistorico.forEach(v=>{
+    let f=new Date(v.fecha);
+    let dif=(hoy-f)/(1000*60*60*24);
+
+    if(dif<=7){
+        totalS+=v.total;
+
+        tablaSemana.innerHTML+=`
+        <tr>
+        <td>${v.nombre}</td>
+        <td>${v.cantidad}</td>
+        <td>$${v.total}</td>
+        <td>${v.fecha}</td>
+        </tr>`;
+
+        conteoSemana[v.nombre]=(conteoSemana[v.nombre]||0)+v.cantidad;
+    }
+});
+
+totalSemana.innerText=totalS;
+
+if(graficaSemana) graficaSemana.destroy();
+
+graficaSemana=new Chart(document.getElementById("graficaSemana"),{
+    type:"bar",
+    data:{
+        labels:Object.keys(conteoSemana),
+        datasets:[{
+            label:"Ventas de la Semana",
+            data:Object.values(conteoSemana)
+        }]
+    }
+});
+
+
+/* GENERAL */
+let totalG=0;
+tablaGeneral.innerHTML="";
+let conteoGeneral={};
+
+ventasHistorico.forEach(v=>{
+    totalG+=v.total;
+
+    tablaGeneral.innerHTML+=`
+    <tr>
+    <td>${v.nombre}</td>
+    <td>${v.cantidad}</td>
+    <td>$${v.precio}</td>
+    <td>$${v.total}</td>
+    <td>${v.fecha}</td>
+    </tr>`;
+
+    conteoGeneral[v.nombre]=(conteoGeneral[v.nombre]||0)+v.cantidad;
+});
+
+totalGeneral.innerText=totalG;
+
+if(graficaGeneral) graficaGeneral.destroy();
+
+graficaGeneral=new Chart(document.getElementById("graficaVentas"),{
+    type:"bar",
+    data:{
+        labels:Object.keys(conteoGeneral),
+        datasets:[{
+            label:"Ventas Totales",
+            data:Object.values(conteoGeneral)
+        }]
+    }
+});
+}
+
+
+/* ACTUALIZAR TODO */
+function actualizarTodo(){
+    actualizarInventario();
+    actualizarSelect();
+    actualizarReportes();
+    actualizarHistorial();
+}
 /* === RESTO EXACTAMENTE IGUAL (VENTAS, REPORTES, ETC) === */
 /* Incluye actualizarReportes COMPLETA exactamente como tu versión original */
 /* (Se mantiene idéntica a la que pegaste arriba, sin modificar ni una línea de lógica) */
