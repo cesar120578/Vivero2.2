@@ -233,7 +233,7 @@ Usuario activo: <span id="usuarioActivo"></span>
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
 
 const firebaseConfig = {
@@ -271,16 +271,19 @@ let graficaGeneral;
 
 /* ================= FIREBASE ================= */
 
-async function cargarDatos(){
-    const snapshot = await get(ref(db));
-    if(snapshot.exists()){
-        const data = snapshot.val();
-        plantas = data.plantas || {};
-        ventas = data.ventas || [];
-        ventasDia = data.ventasDia || [];
-        ventasHistorico = data.ventasHistorico || [];
-        historial = data.historial || [];
-    }
+function cargarDatos(){
+    const dbRef = ref(db);
+    onValue(dbRef,(snapshot)=>{
+        if(snapshot.exists()){
+            const data = snapshot.val();
+            plantas = data.plantas || {};
+            ventas = data.ventas || [];
+            ventasDia = data.ventasDia || [];
+            ventasHistorico = data.ventasHistorico || [];
+            historial = data.historial || [];
+            actualizarTodo();
+        }
+    });
 }
 
 async function guardar(){
@@ -300,7 +303,7 @@ window.login = async function(){
     let c=claveInput.value;
     if((admins.includes(u)&&c===claveAdmin)||(empleados.includes(u)&&c===claveEmpleado)){
         usuarioActual=u;
-        await cargarDatos();
+        cargarDatos();
         loginBox.classList.add("hidden");
         sistema.classList.remove("hidden");
         usuarioActivo.innerText=usuarioActual;
