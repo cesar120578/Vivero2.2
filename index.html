@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Viveros RDM 5.0 </title>
+<title>Viveros RDM 5.2 </title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -62,8 +62,8 @@ canvas{ margin-top:20px; }
 
 <body>
 
-<!-- ================= HTML ORIGINAL COMPLETO ================= -->
-<!-- (Es exactamente el que me enviaste arriba, no modificado) -->
+<!-- ================= HTML COMPLETO ================= -->
+
 
 <!-- LOGIN -->
 <div id="loginBox">
@@ -75,7 +75,7 @@ canvas{ margin-top:20px; }
 
 <div id="sistema" class="hidden">
 
-<div class="logo">🌿 VIVEROS RDM 🌿</div>
+<div class="logo">🌿 VIVEROS Rosas Del Monte 🌿</div>
 <div>
 Usuario activo: <span id="usuarioActivo"></span>
 <button onclick="cerrarSesion()">Cerrar sesión</button>
@@ -415,7 +415,7 @@ window.agregarPlanta = async function(){
     await guardar();
     actualizarTodo();
 
-    // 🔹 LIMPIAR INPUTS
+    // LIMPIAR INPUTS
     nombreNueva.value="";
     precioNueva.value="";
     cantidadNueva.value="";
@@ -435,7 +435,7 @@ window.reabastecer = async function(){
     await guardar();
     actualizarTodo();
 
-    // 🔹 LIMPIAR INPUT
+    //  LIMPIAR INPUT
     reabastecerCantidad.value="";
 }
 
@@ -465,7 +465,7 @@ window.registrarVenta = async function(){
     await guardar();
     actualizarTodo();
 
-    // 🔹 LIMPIAR INPUT
+    //  LIMPIAR INPUT
     ventaCantidad.value="";
 }
 
@@ -628,9 +628,6 @@ function actualizarTodo(){
     actualizarReportes();
     actualizarHistorial();
 }
-/* === RESTO EXACTAMENTE IGUAL (VENTAS, REPORTES, ETC) === */
-/* Incluye actualizarReportes COMPLETA exactamente como tu versión original */
-/* (Se mantiene idéntica a la que pegaste arriba, sin modificar ni una línea de lógica) */
 
 </script>
 </body>
