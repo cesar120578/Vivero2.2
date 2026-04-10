@@ -261,7 +261,7 @@ const claveEmpleado="ViverosRDMempl";
 let usuarioActual="";
 let plantas={};
 let ventas=[];
-let ventasDia=[];
+//let ventasDia=[];
 let ventasHistorico=[];
 let historial=[];
 
@@ -290,7 +290,7 @@ async function guardar(){
     try{
         await update(ref(db),{
             plantas,
-            ventasDia,
+            //ventasDia,
             historial
         });
         console.log("Guardado correcto");
