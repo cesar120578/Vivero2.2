@@ -233,7 +233,7 @@ Usuario activo: <span id="usuarioActivo"></span>
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+import { getDatabase, ref, set, update, push, onValue } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
 
 const firebaseConfig = {
@@ -279,7 +279,7 @@ function cargarDatos(){
             plantas = data.plantas || {};
             ventas = data.ventas || [];
             ventasDia = data.ventasDia || [];
-            ventasHistorico = data.ventasHistorico || [];
+            ventasHistorico = data.ventasHistorico ? Object.values(data.ventasHistorico) : [];
             historial = data.historial || [];
             actualizarTodo();
         }
@@ -287,16 +287,19 @@ function cargarDatos(){
 }
 
 async function guardar(){
-    await set(ref(db),{
-        plantas,
-        ventas,
-        ventasDia,
-        ventasHistorico,
-        historial
-    });
+    try{
+        await update(ref(db),{
+            plantas,
+            ventasDia,
+            historial
+        });
+        console.log("Guardado correcto");
+    }catch(e){
+        console.error("Error:", e);
+        alert("Error con la base de datos");
+    }
 }
 
-/* ================= SISTEMA COMPLETO ================= */
 
 window.login = async function(){
     let u=usuarioInput.value;
@@ -458,11 +461,13 @@ window.registrarVenta = async function(){
         usuario:usuarioActual
     };
 
-    ventas.push(ventaObj);
-    ventasDia.push(ventaObj);
-    ventasHistorico.push(ventaObj);
+ventasDia.push(ventaObj);
 
-    await guardar();
+// Guardar venta individual (NO sobrescribe)
+await push(ref(db, "ventasHistorico"), ventaObj);
+
+// Guardar lo demás normal
+await guardar();
     actualizarTodo();
 
     //  LIMPIAR INPUT
