@@ -187,8 +187,26 @@ Usuario activo: <span id="usuarioActivo"></span>
 </table>
 </div>
 
+<h3>Buscar ventas por fecha</h3>
+
+<input type="date" id="fechaFiltro">
+<button onclick="filtrarPorFecha()">Buscar</button>
+
+<table>
+<thead>
+<tr>
+<th>Planta</th>
+<th>Cantidad</th>
+<th>Total</th>
+<th>Fecha</th>
+</tr>
+</thead>
+<tbody id="tablaFiltro"></tbody>
+</table>
 </div>
 </div>
+
+    
 
 <!-- ADMIN -->
 <div class="section">
@@ -278,7 +296,7 @@ function cargarDatos(){
             const data = snapshot.val();
             plantas = data.plantas || {};
             ventas = data.ventas || [];
-            ventasDia = data.ventasDia || [];
+   //299         ventasDia = data.ventasDia || [];
             ventasHistorico = data.ventasHistorico ? Object.values(data.ventasHistorico) : [];
             historial = data.historial || [];
             actualizarTodo();
@@ -457,11 +475,11 @@ window.registrarVenta = async function(){
         cantidad:c,
         precio:plantas[n].precio,
         total:c*plantas[n].precio,
-        fecha:new Date().toLocaleString(),
+        fecha: Date.now(),
         usuario:usuarioActual
     };
 
-ventasDia.push(ventaObj);
+//ventasDia.push(ventaObj);
 
 // Guardar venta individual (NO sobrescribe)
 await push(ref(db, "ventasHistorico"), ventaObj);
@@ -476,16 +494,8 @@ await guardar();
 
 
 /* CORTE DEL DÍA */
-window.corteDelDia = async function(){
-    if(ventasDia.length===0) return alert("No hay ventas hoy");
-
-    registrarHistorial("Corte del Día","Cierre con "+ventasDia.length+" ventas");
-
-    ventasDia=[];
-    await guardar();
-    actualizarReportes();
-
-    alert("Corte realizado correctamente");
+window.corteDelDia = function(){
+    alert("El corte ahora es automático basado en ventas registradas");
 }
 
 
@@ -517,22 +527,29 @@ let totalD=0;
 tablaDia.innerHTML="";
 let conteoDia={};
 
-ventasDia.forEach(v=>{
-    totalD+=v.total;
+let hoy = new Date().toLocaleDateString();
 
-    tablaDia.innerHTML+=`
-    <tr>
-    <td>${v.nombre}</td>
-    <td>${v.cantidad}</td>
-    <td>$${v.precio}</td>
-    <td>$${v.total}</td>
-    <td>${v.fecha}</td>
-    </tr>`;
+ventasHistorico.forEach(v=>{
+    let fechaVenta = new Date(v.fecha).toLocaleDateString();
 
-    conteoDia[v.nombre]=(conteoDia[v.nombre]||0)+v.cantidad;
+    if(fechaVenta === hoy){
+
+        totalD += v.total;
+
+        tablaDia.innerHTML += `
+        <tr>
+        <td>${v.nombre}</td>
+        <td>${v.cantidad}</td>
+        <td>$${v.precio}</td>
+        <td>$${v.total}</td>
+        <td>${new Date(v.fecha).toLocaleString()}</td>
+        </tr>`;
+
+        conteoDia[v.nombre] = (conteoDia[v.nombre] || 0) + v.cantidad;
+    }
 });
 
-totalDia.innerText=totalD;
+totalDia.innerText = totalD;
 
 if(graficaDia) graficaDia.destroy();
 
@@ -547,12 +564,11 @@ graficaDia=new Chart(document.getElementById("graficaDia"),{
     }
 });
 
-
 /* SEMANA */
 let totalS=0;
 tablaSemana.innerHTML="";
 let conteoSemana={};
-let hoy=new Date();
+let ahora = new Date();
 
 ventasHistorico.forEach(v=>{
     let f=new Date(v.fecha);
@@ -566,7 +582,7 @@ ventasHistorico.forEach(v=>{
         <td>${v.nombre}</td>
         <td>${v.cantidad}</td>
         <td>$${v.total}</td>
-        <td>${v.fecha}</td>
+        <td>${new Date(v.fecha).toLocaleString()}</td>
         </tr>`;
 
         conteoSemana[v.nombre]=(conteoSemana[v.nombre]||0)+v.cantidad;
@@ -603,7 +619,7 @@ ventasHistorico.forEach(v=>{
     <td>${v.cantidad}</td>
     <td>$${v.precio}</td>
     <td>$${v.total}</td>
-    <td>${v.fecha}</td>
+    <td>${new Date(v.fecha).toLocaleString()}</td>
     </tr>`;
 
     conteoGeneral[v.nombre]=(conteoGeneral[v.nombre]||0)+v.cantidad;
@@ -632,6 +648,32 @@ function actualizarTodo(){
     actualizarSelect();
     actualizarReportes();
     actualizarHistorial();
+}
+window.filtrarPorFecha = function(){
+
+    let fechaSeleccionada = new Date(fechaFiltro.value).toLocaleDateString();
+
+    tablaFiltro.innerHTML = "";
+    let total = 0;
+
+    ventasHistorico.forEach(v=>{
+        let fechaVenta = new Date(v.fecha).toLocaleDateString();
+
+        if(fechaVenta === fechaSeleccionada){
+
+            total += v.total;
+
+            tablaFiltro.innerHTML += `
+            <tr>
+            <td>${v.nombre}</td>
+            <td>${v.cantidad}</td>
+            <td>$${v.total}</td>
+            <td>${new Date(v.fecha).toLocaleString()}</td>
+            </tr>`;
+        }
+    });
+
+    alert("Total de ese día: $" + total);
 }
 
 </script>
