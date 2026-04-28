@@ -18,7 +18,8 @@ body{
 
 <!-- ================= HTML COMPLETO ================= -->
 
-<!-- LOGIN --> <div id="loginBox">     <h2>Iniciar Sesión</h2>     <input id="usuarioInput" placeholder="Usuario">     <input id="claveInput" type="password" placeholder="Contraseña">     <button onclick="login()">Ingresar</button> </div>
+<!-- LOGIN --> <div id="loginBox">     <h2>Iniciar Sesión</h2>     <input id="usuarioInput" placeholder="Usuario">     <input id="claveInput" type="password" placeholder="Contraseña">     <button id="btnLogin">Ingresar</button>
+</div>
 
 <div id="sistema" class="hidden">
 <button onclick="crearUsuario()">➕ Crear Usuario</button>
@@ -278,7 +279,10 @@ if(graficaGeneral) graficaGeneral.destroy();
 
 graficaGeneral=new Chart(document.getElementById("graficaVentas"),{     type:"bar",     data:{         labels:Object.keys(conteoGeneral),         datasets:[{             label:"Ventas Totales",             data:Object.values(conteoGeneral)         }]     } }); }
 
-/* ACTUALIZAR TODO */ function actualizarTodo(){     actualizarInventario();     actualizarSelect();     actualizarReportes();     actualizarHistorial(); } window.filtrarPorFecha = function(){
+/* ACTUALIZAR TODO */ function actualizarTodo(){     actualizarInventario();     actualizarSelect();     actualizarReportes();     actualizarHistorial(); }
+window.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("btnLogin").addEventListener("click", login);
+}); window.filtrarPorFecha = function(){
 
     let fechaSeleccionada = new Date(fechaFiltro.value).toLocaleDateString();
 
