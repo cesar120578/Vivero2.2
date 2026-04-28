@@ -1,248 +1,55 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Viveros RDM 5.5 </title>
+<!DOCTYPE html> <html> <head> <meta charset="UTF-8"> <title>Viveros RDM 5.5 </title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<style>
-body{
-    background:black;
-    color:gold;
-    font-family:Arial;
-    text-align:center;
-}
-.logo{
-    font-size:28px;
-    font-weight:bold;
-    margin-top:10px;
-}
-.section{
-    width:90%;
-    margin:25px auto;
-    border:1px solid gold;
-    border-radius:10px;
-    padding:20px;
-}
-h2{
-    cursor:pointer;
-    border-bottom:1px solid gold;
-    padding-bottom:8px;
-}
-.hidden{ display:none; }
-input,select,button{
-    padding:8px;
-    margin:6px;
-    border-radius:6px;
-    border:none;
-}
-button{
-    background:gold;
-    color:black;
-    font-weight:bold;
-    cursor:pointer;
-}
-button:hover{ background:#d4af37; }
-table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:15px;
-    font-size:18px;
-}
-th,td{
-    border:1px solid gold;
-    padding:10px;
-}
-th{ background:#111; }
-canvas{ margin-top:20px; }
-#loginBox{ margin-top:100px; }
-</style>
-</head>
+<style> body{     background:black;     color:gold;     font-family:Arial;     text-align:center; } .logo{     font-size:28px;     font-weight:bold;     margin-top:10px; } .section{     width:90%;     margin:25px auto;     border:1px solid gold;     border-radius:10px;     padding:20px; } h2{     cursor:pointer;     border-bottom:1px solid gold;     padding-bottom:8px; } .hidden{ display:none; } input,select,button{     padding:8px;     margin:6px;     border-radius:6px;     border:none; } button{     background:gold;     color:black;     font-weight:bold;     cursor:pointer; } button:hover{ background:#d4af37; } table{     width:100%;     border-collapse:collapse;     margin-top:15px;     font-size:18px; } th,td{     border:1px solid gold;     padding:10px; } th{ background:#111; } canvas{ margin-top:20px; } #loginBox{ margin-top:100px; } </style> </head>
 
 <body>
 
 <!-- ================= HTML COMPLETO ================= -->
 
-
-<!-- LOGIN -->
-<div id="loginBox">
-    <h2>Iniciar Sesión</h2>
-    <input id="usuarioInput" placeholder="Usuario">
-    <input id="claveInput" type="password" placeholder="Contraseña">
-    <button onclick="login()">Ingresar</button>
-</div>
+<!-- LOGIN --> <div id="loginBox">     <h2>Iniciar Sesión</h2>     <input id="usuarioInput" placeholder="Usuario">     <input id="claveInput" type="password" placeholder="Contraseña">     <button onclick="login()">Ingresar</button> </div>
 
 <div id="sistema" class="hidden">
+<button onclick="crearUsuario()">➕ Crear Usuario</button>
 
-<div class="logo">🌿 VIVEROS Rosas Del Monte 🌿</div>
-<div>
-Usuario activo: <span id="usuarioActivo"></span>
-<button onclick="cerrarSesion()">Cerrar sesión</button>
-</div>
+<div class="logo">🌿 VIVEROS Rosas Del Monte 🌿</div> <div> Usuario activo: <span id="usuarioActivo"></span> <button onclick="cerrarSesion()">Cerrar sesión</button> </div>
 
-<!-- AGREGAR -->
-<div class="section">
-<h2 onclick="toggle('agregarDiv')">Agregar Planta</h2>
-<div id="agregarDiv" class="hidden">
-<input id="nombreNueva" placeholder="Nombre">
-<input id="precioNueva" type="number" placeholder="Precio">
-<input id="cantidadNueva" type="number" placeholder="Cantidad">
-<button onclick="agregarPlanta()">Agregar</button>
-</div>
-</div>
+<!-- AGREGAR --> <div class="section"> <h2 onclick="toggle('agregarDiv')">Agregar Planta</h2> <div id="agregarDiv" class="hidden"> <input id="nombreNueva" placeholder="Nombre"> <input id="precioNueva" type="number" placeholder="Precio"> <input id="cantidadNueva" type="number" placeholder="Cantidad"> <button onclick="agregarPlanta()">Agregar</button> </div> </div>
 
-<!-- REABASTECER -->
-<div class="section">
-<h2 onclick="toggle('reabastecerDiv')">Reabastecer Inventario</h2>
-<div id="reabastecerDiv" class="hidden">
-<select id="reabastecerNombre"></select>
-<input id="reabastecerCantidad" type="number" placeholder="Cantidad">
-<button onclick="reabastecer()">Reabastecer</button>
-</div>
-</div>
+<!-- REABASTECER --> <div class="section"> <h2 onclick="toggle('reabastecerDiv')">Reabastecer Inventario</h2> <div id="reabastecerDiv" class="hidden"> <select id="reabastecerNombre"></select> <input id="reabastecerCantidad" type="number" placeholder="Cantidad"> <button onclick="reabastecer()">Reabastecer</button> </div> </div>
 
-<!-- INVENTARIO -->
-<div class="section">
-<h2 onclick="toggle('inventarioDiv')">Inventario</h2>
-<div id="inventarioDiv" class="hidden">
-<table>
-<thead>
-<tr>
-<th>Planta</th>
-<th>Precio</th>
-<th>Stock</th>
-</tr>
-</thead>
-<tbody id="tablaInventario"></tbody>
-</table>
-</div>
-</div>
+<!-- INVENTARIO --> <div class="section"> <h2 onclick="toggle('inventarioDiv')">Inventario</h2> <div id="inventarioDiv" class="hidden"> <table> <thead> <tr> <th>Planta</th> <th>Precio</th> <th>Stock</th> </tr> </thead> <tbody id="tablaInventario"></tbody> </table> </div> </div>
 
-<!-- VENTAS -->
-<div class="section">
-<h2 onclick="toggle('ventasDiv')">Registrar Venta</h2>
-<div id="ventasDiv" class="hidden">
-<select id="ventaNombre"></select>
-<input id="ventaCantidad" type="number" placeholder="Cantidad">
-<button onclick="registrarVenta()">Vender</button>
-</div>
-</div>
+<!-- VENTAS --> <div class="section"> <h2 onclick="toggle('ventasDiv')">Registrar Venta</h2> <div id="ventasDiv" class="hidden"> <select id="ventaNombre"></select> <input id="ventaCantidad" type="number" placeholder="Cantidad"> <button onclick="registrarVenta()">Vender</button> </div> </div>
 
-<!-- REPORTES -->
-<div class="section">
-<h2 onclick="toggle('reporteDiv')">Reportes / Dashboard</h2>
-<div id="reporteDiv" class="hidden">
+<!-- REPORTES --> <div class="section"> <h2 onclick="toggle('reporteDiv')">Reportes / Dashboard</h2> <div id="reporteDiv" class="hidden">
 
-<h3 onclick="toggle('reporteDia')">📅 Reporte del Día</h3>
-<div id="reporteDia" class="hidden">
-<h4>Total del Día: $<span id="totalDia">0</span></h4>
-<canvas id="graficaDia"></canvas>
-<table>
-<thead>
-<tr>
-<th>Planta</th>
-<th>Cantidad</th>
-<th>Precio</th>
-<th>Total</th>
-<th>Fecha</th>
-</tr>
-</thead>
-<tbody id="tablaDia"></tbody>
-</table>
-</div>
+<h3 onclick="toggle('reporteDia')">📅 Reporte del Día</h3> <div id="reporteDia" class="hidden"> <h4>Total del Día: $<span id="totalDia">0</span></h4> <canvas id="graficaDia"></canvas> <table> <thead> <tr> <th>Planta</th> <th>Cantidad</th> <th>Precio</th> <th>Total</th> <th>Fecha</th> </tr> </thead> <tbody id="tablaDia"></tbody> </table> </div>
 
-<h3 onclick="toggle('reporteSemana')">📆 Reporte Semanal</h3>
-<div id="reporteSemana" class="hidden">
-<h4>Total Semana: $<span id="totalSemana">0</span></h4>
-<canvas id="graficaSemana"></canvas>
-<table>
-<thead>
-<tr>
-<th>Planta</th>
-<th>Cantidad</th>
-<th>Total</th>
-<th>Fecha</th>
-</tr>
-</thead>
-<tbody id="tablaSemana"></tbody>
-</table>
-</div>
+<h3 onclick="toggle('reporteSemana')">📆 Reporte Semanal</h3> <div id="reporteSemana" class="hidden"> <h4>Total Semana: $<span id="totalSemana">0</span></h4> <canvas id="graficaSemana"></canvas> <table> <thead> <tr> <th>Planta</th> <th>Cantidad</th> <th>Total</th> <th>Fecha</th> </tr> </thead> <tbody id="tablaSemana"></tbody> </table> </div>
 
-<h3 onclick="toggle('reporteGeneral')">📊 Reporte General</h3>
-<div id="reporteGeneral" class="hidden">
-<h4>Total General: $<span id="totalGeneral">0</span></h4>
-<canvas id="graficaVentas"></canvas>
-<table>
-<thead>
-<tr>
-<th>Planta</th>
-<th>Cantidad</th>
-<th>Precio</th>
-<th>Total</th>
-<th>Fecha</th>
-</tr>
-</thead>
-<tbody id="tablaGeneral"></tbody>
-</table>
-</div>
+<h3 onclick="toggle('reporteGeneral')">📊 Reporte General</h3> <div id="reporteGeneral" class="hidden"> <h4>Total General: $<span id="totalGeneral">0</span></h4> <canvas id="graficaVentas"></canvas> <table> <thead> <tr> <th>Planta</th> <th>Cantidad</th> <th>Precio</th> <th>Total</th> <th>Fecha</th> </tr> </thead> <tbody id="tablaGeneral"></tbody> </table> </div>
 
 <h3>Buscar ventas por fecha</h3>
 
-<input type="date" id="fechaFiltro">
-<button onclick="filtrarPorFecha()">Buscar</button>
+<input type="date" id="fechaFiltro"> <button onclick="filtrarPorFecha()">Buscar</button>
 
-<table>
-<thead>
-<tr>
-<th>Planta</th>
-<th>Cantidad</th>
-<th>Total</th>
-<th>Fecha</th>
-</tr>
-</thead>
-<tbody id="tablaFiltro"></tbody>
-</table>
-</div>
-</div>
+<table> <thead> <tr> <th>Planta</th> <th>Cantidad</th> <th>Total</th> <th>Fecha</th> </tr> </thead> <tbody id="tablaFiltro"></tbody> </table> </div> </div>
 
     
 
-<!-- ADMIN -->
-<div class="section">
-<h2 onclick="toggle('adminDiv')">🛠 Funciones de Admin</h2>
-<div id="adminDiv" class="hidden">
+<!-- ADMIN --> <div class="section"> <h2 onclick="toggle('adminDiv')">🛠 Funciones de Admin</h2> <div id="adminDiv" class="hidden">
 
 <button onclick="restablecerSistema()">Restablecer Sistema</button>
 
-<h3>Corte del Día</h3>
-<button onclick="corteDelDia()">Realizar Corte del Día</button>
+<h3>Corte del Día</h3> <button onclick="corteDelDia()">Realizar Corte del Día</button>
 
-<h3>Editar / Eliminar Planta</h3>
-<select id="editarNombre" onchange="cargarDatosEdicion()"></select>
-<br>
-<input id="editarNuevoNombre" placeholder="Nuevo nombre">
-<input id="editarNuevoPrecio" type="number" placeholder="Nuevo precio">
-<input id="editarNuevaCantidad" type="number" placeholder="Nueva cantidad">
-<br>
-<button onclick="guardarCambios()">Guardar Cambios</button>
-<button onclick="eliminarPlanta()">Eliminar Planta</button>
+<h3>Editar / Eliminar Planta</h3> <select id="editarNombre" onchange="cargarDatosEdicion()"></select> <br> <input id="editarNuevoNombre" placeholder="Nuevo nombre"> <input id="editarNuevoPrecio" type="number" placeholder="Nuevo precio"> <input id="editarNuevaCantidad" type="number" placeholder="Nueva cantidad"> <br> <button onclick="guardarCambios()">Guardar Cambios</button> <button onclick="eliminarPlanta()">Eliminar Planta</button>
 
-<h3>Historial de Cambios de Inventario</h3>
-<table>
-<thead>
-<tr>
-<th>Fecha</th>
-<th>Usuario</th>
-<th>Acción</th>
-<th>Detalle</th>
-</tr>
-</thead>
-<tbody id="tablaHistorial"></tbody>
-</table>
+<h3>Historial de Cambios de Inventario</h3> <table> <thead> <tr> <th>Fecha</th> <th>Usuario</th> <th>Acción</th> <th>Detalle</th> </tr> </thead> <tbody id="tablaHistorial"></tbody> </table>
 
-</div>
-</div>
+</div> </div>
 
 </div>
 
@@ -250,432 +57,219 @@ Usuario activo: <span id="usuarioActivo"></span>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getDatabase, ref, set, update, push, onValue } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js"; import { getDatabase, ref, set, update, push, onValue } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js"; import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
+ import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword } 
+from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+const firebaseConfig = {   apiKey: "AIzaSyBSZucWCiY1C24XTVDu1MtC0ZRWZjmHSC0",   authDomain: "sistema-vivero.firebaseapp.com",   databaseURL: "https://sistema-vivero-default-rtdb.firebaseio.com",   projectId: "sistema-vivero",   storageBucket: "sistema-vivero.firebasestorage.app",   messagingSenderId: "325664184257",   appId: "1:325664184257:web:8af25c6bdb65b51623c140",   measurementId: "G-7RL5PJ1TMP" };
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBSZucWCiY1C24XTVDu1MtC0ZRWZjmHSC0",
-  authDomain: "sistema-vivero.firebaseapp.com",
-  databaseURL: "https://sistema-vivero-default-rtdb.firebaseio.com",
-  projectId: "sistema-vivero",
-  storageBucket: "sistema-vivero.firebasestorage.app",
-  messagingSenderId: "325664184257",
-  appId: "1:325664184257:web:8af25c6bdb65b51623c140",
-  measurementId: "G-7RL5PJ1TMP"
-};
-
-const app = initializeApp(firebaseConfig);
-getAnalytics(app);
-const db = getDatabase(app);
+const app = initializeApp(firebaseConfig); const auth = getAuth(app); getAnalytics(app); const db = getDatabase(app);
 
 /* ================= VARIABLES ================= */
 
-const admins=["César","Oswaldo","Hanalih","Sofia","Valeria"];
-const empleados=["Alan","Emp2","Emp3"];
-const claveAdmin="ViverosRDM12";
-const claveEmpleado="ViverosRDMempl";
+let usuarioActual=""; let plantas={}; let ventas=[];
 
-let usuarioActual="";
-let plantas={};
-let ventas=[];
+let ventasHistorico=[]; let historial=[];
 
-let ventasHistorico=[];
-let historial=[];
+let graficaDia; let graficaSemana; let graficaGeneral;
 
-let graficaDia;
-let graficaSemana;
-let graficaGeneral;
+onAuthStateChanged(auth, (user)=>{     if(user){         usuarioActual = user.email;
+
+        loginBox.classList.add("hidden");         sistema.classList.remove("hidden");
+
+        usuarioActivo.innerText = usuarioActual;
+
+        cargarDatos();     } });
 
 /* ================= FIREBASE ================= */
 
-function cargarDatos(){
-    const dbRef = ref(db);
-    onValue(dbRef,(snapshot)=>{
-        if(snapshot.exists()){
-            const data = snapshot.val();
-            plantas = data.plantas || {};
-            ventas = data.ventas || [];
+function cargarDatos(){     const dbRef = ref(db);     onValue(dbRef,(snapshot)=>{         if(snapshot.exists()){             const data = snapshot.val();             plantas = data.plantas || {};             ventas = data.ventas || [];
 
-            ventasHistorico = data.ventasHistorico ? Object.values(data.ventasHistorico) : [];
-            historial = data.historial || [];
-            actualizarTodo();
-        }
-    });
-}
+            ventasHistorico = data.ventasHistorico ? Object.values(data.ventasHistorico) : [];             historial = data.historial || [];             actualizarTodo();         }     }); }
 
-async function guardar(){
-    try{
-        await update(ref(db),{
-            plantas,
-          
-            historial
-        });
-        console.log("Guardado correcto");
-    }catch(e){
-        console.error("Error:", e);
-        alert("Error con la base de datos");
-    }
-}
+async function guardar(){     try{         await update(ref(db),{             plantas,                        historial         });         console.log("Guardado correcto");     }catch(e){         console.error("Error:", e);         alert("Error con la base de datos");     } }
 
+window.login = async function(){     let email = usuarioInput.value;     let password = claveInput.value;
 
-window.login = async function(){
-    let u=usuarioInput.value;
-    let c=claveInput.value;
-    if((admins.includes(u)&&c===claveAdmin)||(empleados.includes(u)&&c===claveEmpleado)){
-        usuarioActual=u;
+    try{         const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+        usuarioActual = userCredential.user.email;
+
+        loginBox.classList.add("hidden");         sistema.classList.remove("hidden");
+
+        usuarioActivo.innerText = usuarioActual;
+
         cargarDatos();
-        loginBox.classList.add("hidden");
-        sistema.classList.remove("hidden");
-        usuarioActivo.innerText=usuarioActual;
-        actualizarTodo();
-    } else alert("Usuario o contraseña incorrectos");
-}
 
-window.cerrarSesion = function(){ location.reload(); }
+    }catch(error){         alert("Error: " + error.message);     } }
 
-function registrarHistorial(accion,detalle){
-    historial.push({
-        fecha:new Date().toLocaleString(),
-        usuario:usuarioActual,
-        accion,
-        detalle
-    });
-    guardar();
-}
+window.cerrarSesion = async function(){     await signOut(auth);     location.reload(); } function registrarHistorial(accion,detalle){     historial.push({         fecha:new Date().toLocaleString(),         usuario:usuarioActual,         accion,         detalle     });     guardar(); }
 
-window.toggle = function(id){
-    document.getElementById(id).classList.toggle("hidden");
-}
+window.toggle = function(id){     document.getElementById(id).classList.toggle("hidden"); }
 
 function ordenar(){ return Object.keys(plantas).sort((a,b)=>a.localeCompare(b)); }
 
-function actualizarInventario(){
-    tablaInventario.innerHTML="";
-    ordenar().forEach(nombre=>{
-        tablaInventario.innerHTML+=`
-        <tr>
-        <td>${nombre}</td>
-        <td>$${plantas[nombre].precio}</td>
-        <td>${plantas[nombre].inventario}</td>
-        </tr>`;
-    });
-}
+function actualizarInventario(){     tablaInventario.innerHTML="";     ordenar().forEach(nombre=>{         tablaInventario.innerHTML+=`         <tr>         <td>${nombre}</td>         <td>$${plantas[nombre].precio}</td>         <td>${plantas[nombre].inventario}</td>         </tr>`;     }); }
 
-function actualizarSelect(){
-    ["ventaNombre","reabastecerNombre","editarNombre"].forEach(id=>{
-        let s=document.getElementById(id);
-        s.innerHTML="";
-        ordenar().forEach(nombre=>{
-            s.innerHTML+=`<option value="${nombre}">${nombre}</option>`;
-        });
-    });
-}
+function actualizarSelect(){     ["ventaNombre","reabastecerNombre","editarNombre"].forEach(id=>{         let s=document.getElementById(id);         s.innerHTML="";         ordenar().forEach(nombre=>{             s.innerHTML+=`<option value="${nombre}">${nombre}</option>`;         });     }); }
 
-function actualizarHistorial(){
-    tablaHistorial.innerHTML="";
-    historial.forEach(h=>{
-        tablaHistorial.innerHTML+=`
-        <tr>
-        <td>${h.fecha}</td>
-        <td>${h.usuario}</td>
-        <td>${h.accion}</td>
-        <td>${h.detalle}</td>
-        </tr>`;
-    });
-}
+function actualizarHistorial(){     tablaHistorial.innerHTML="";     historial.forEach(h=>{         tablaHistorial.innerHTML+=`         <tr>         <td>${h.fecha}</td>         <td>${h.usuario}</td>         <td>${h.accion}</td>         <td>${h.detalle}</td>         </tr>`;     }); }
 
 /* === EDICIÓN COMPLETA === */
 
-window.cargarDatosEdicion = function(){
-    let n=editarNombre.value;
-    if(!plantas[n]) return;
-    editarNuevoNombre.value=n;
-    editarNuevoPrecio.value=plantas[n].precio;
-    editarNuevaCantidad.value=plantas[n].inventario;
-}
+window.cargarDatosEdicion = function(){     let n=editarNombre.value;     if(!plantas[n]) return;     editarNuevoNombre.value=n;     editarNuevoPrecio.value=plantas[n].precio;     editarNuevaCantidad.value=plantas[n].inventario; }
 
-window.guardarCambios = async function(){
-    let original=editarNombre.value;
-    let nuevo=editarNuevoNombre.value.trim();
-    let precio=parseFloat(editarNuevoPrecio.value);
-    let cantidad=parseInt(editarNuevaCantidad.value);
+window.guardarCambios = async function(){     let original=editarNombre.value;     let nuevo=editarNuevoNombre.value.trim();     let precio=parseFloat(editarNuevoPrecio.value);     let cantidad=parseInt(editarNuevaCantidad.value);
 
     if(!nuevo||!precio||!cantidad) return alert("Datos inválidos");
 
-    delete plantas[original];
-    plantas[nuevo]={precio:precio,inventario:cantidad};
+    delete plantas[original];     plantas[nuevo]={precio:precio,inventario:cantidad};
 
-    registrarHistorial("Editar",`${original} → ${nuevo}`);
-    await guardar();
-    actualizarTodo();
-}
+    registrarHistorial("Editar",`${original} → ${nuevo}`);     await guardar();     actualizarTodo(); }
 
-window.eliminarPlanta = async function(){
-    let n=editarNombre.value;
-    if(!confirm("¿Eliminar planta?")) return;
-    delete plantas[n];
-    registrarHistorial("Eliminar",n);
-    await guardar();
-    actualizarTodo();
-}
-/* ================= FUNCIONES FALTANTES ================= */
+window.eliminarPlanta = async function(){     let n=editarNombre.value;     if(!confirm("¿Eliminar planta?")) return;     delete plantas[n];     registrarHistorial("Eliminar",n);     await guardar();     actualizarTodo(); } /* ================= FUNCIONES FALTANTES ================= */
 
-/* AGREGAR PLANTA */
-window.agregarPlanta = async function(){
-    let n=nombreNueva.value.trim();
-    let p=parseFloat(precioNueva.value);
-    let c=parseInt(cantidadNueva.value);
+/* AGREGAR PLANTA */ window.agregarPlanta = async function(){     let n=nombreNueva.value.trim();     let p=parseFloat(precioNueva.value);     let c=parseInt(cantidadNueva.value);
 
-    if(!n||!p||!c) return alert("Datos inválidos");
-    if(plantas[n]) return alert("Ya existe");
+    if(!n||!p||!c) return alert("Datos inválidos");     if(plantas[n]) return alert("Ya existe");
 
     plantas[n]={precio:p,inventario:c};
 
-    registrarHistorial("Agregar",`Se agregó ${n} (${c})`);
-    await guardar();
-    actualizarTodo();
+    registrarHistorial("Agregar",`Se agregó ${n} (${c})`);     await guardar();     actualizarTodo();
 
-    // LIMPIAR INPUTS
-    nombreNueva.value="";
-    precioNueva.value="";
-    cantidadNueva.value="";
-}
+    // LIMPIAR INPUTS     nombreNueva.value="";     precioNueva.value="";     cantidadNueva.value=""; }
 
-
-/* REABASTECER */
-window.reabastecer = async function(){
-    let n=reabastecerNombre.value;
-    let c=parseInt(reabastecerCantidad.value);
+/* REABASTECER */ window.reabastecer = async function(){     let n=reabastecerNombre.value;     let c=parseInt(reabastecerCantidad.value);
 
     if(!c||c<=0) return alert("Cantidad inválida");
 
     plantas[n].inventario+=c;
 
-    registrarHistorial("Reabastecer",`${n} +${c}`);
-    await guardar();
-    actualizarTodo();
+    registrarHistorial("Reabastecer",`${n} +${c}`);     await guardar();     actualizarTodo();
+//crear usuario
+window.crearUsuario = async function(){
 
-    //  LIMPIAR INPUT
-    reabastecerCantidad.value="";
+    let email = prompt("Correo del usuario:");
+    let password = prompt("Contraseña:");
+
+    if(!email || !password){
+        return alert("Datos inválidos");
+    }
+
+    try{
+        let userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+        let uid = userCredential.user.uid;
+
+        // Guardar rol en la base
+        await set(ref(db, "usuarios/" + uid), {
+            rol: "empleado"
+        });
+
+        alert("Usuario creado correctamente");
+
+        // IMPORTANTE: regresar al admin
+        await signOut(auth);
+
+    }catch(error){
+        alert("Error: " + error.message);
+    }
 }
+    //  LIMPIAR INPUT     reabastecerCantidad.value=""; }
 
-
-/* REGISTRAR VENTA */
-window.registrarVenta = async function(){
-    let n=ventaNombre.value;
-    let c=parseInt(ventaCantidad.value);
+/* REGISTRAR VENTA */ window.registrarVenta = async function(){     let n=ventaNombre.value;     let c=parseInt(ventaCantidad.value);
 
     if(!c||c<=0||plantas[n].inventario<c) return alert("Error");
 
     plantas[n].inventario-=c;
 
-    let ventaObj={
-        nombre:n,
-        cantidad:c,
-        precio:plantas[n].precio,
-        total:c*plantas[n].precio,
-        fecha: Date.now(),
-        usuario:usuarioActual
-    };
+    let ventaObj={         nombre:n,         cantidad:c,         precio:plantas[n].precio,         total:c*plantas[n].precio,         fecha: Date.now(),         usuario:usuarioActual     };
 
 //ventasDia.push(ventaObj);
 
-// Guardar venta individual (NO sobrescribe)
-await push(ref(db, "ventasHistorico"), ventaObj);
+// Guardar venta individual (NO sobrescribe) await push(ref(db, "ventasHistorico"), ventaObj);
 
-// Guardar lo demás normal
-await guardar();
-    actualizarTodo();
+// Guardar lo demás normal await guardar();     actualizarTodo();
 
-    //  LIMPIAR INPUT
-    ventaCantidad.value="";
-}
+    //  LIMPIAR INPUT     ventaCantidad.value=""; }
 
+/* CORTE DEL DÍA */ window.corteDelDia = function(){     alert("El corte ahora es automático basado en ventas registradas"); }
 
-/* CORTE DEL DÍA */
-window.corteDelDia = function(){
-    alert("El corte ahora es automático basado en ventas registradas");
-}
+/* RESTABLECER SISTEMA */ window.restablecerSistema = async function(){     let codigo=prompt("Código:");
 
-
-/* RESTABLECER SISTEMA */
-window.restablecerSistema = async function(){
-    let codigo=prompt("Código:");
-
-    if(codigo==="241412"){
-        plantas={};
-        ventas=[];
-        
-        ventasHistorico=[];
-        historial=[];
+    if(codigo==="241412"){         plantas={};         ventas=[];                  ventasHistorico=[];         historial=[];
 
         await guardar();
 
-        alert("Sistema reiniciado");
-        location.reload();
-    }
-}
-
+        alert("Sistema reiniciado");         location.reload();     } }
 
 /* ================= REPORTES COMPLETOS ================= */
 
 function actualizarReportes(){
 
-/* DÍA */
-let totalD=0;
-tablaDia.innerHTML="";
-let conteoDia={};
+/* DÍA */ let totalD=0; tablaDia.innerHTML=""; let conteoDia={};
 
 let hoy = new Date().toLocaleDateString();
 
-ventasHistorico.forEach(v=>{
-    let fechaVenta = new Date(v.fecha).toLocaleDateString();
+ventasHistorico.forEach(v=>{     let fechaVenta = new Date(v.fecha).toLocaleDateString();
 
     if(fechaVenta === hoy){
 
         totalD += v.total;
 
-        tablaDia.innerHTML += `
-        <tr>
-        <td>${v.nombre}</td>
-        <td>${v.cantidad}</td>
-        <td>$${v.precio}</td>
-        <td>$${v.total}</td>
-        <td>${new Date(v.fecha).toLocaleString()}</td>
-        </tr>`;
+        tablaDia.innerHTML += `         <tr>         <td>${v.nombre}</td>         <td>${v.cantidad}</td>         <td>$${v.precio}</td>         <td>$${v.total}</td>         <td>${new Date(v.fecha).toLocaleString()}</td>         </tr>`;
 
-        conteoDia[v.nombre] = (conteoDia[v.nombre] || 0) + v.cantidad;
-    }
-});
+        conteoDia[v.nombre] = (conteoDia[v.nombre] || 0) + v.cantidad;     } });
 
 totalDia.innerText = totalD;
 
 if(graficaDia) graficaDia.destroy();
 
-graficaDia=new Chart(document.getElementById("graficaDia"),{
-    type:"bar",
-    data:{
-        labels:Object.keys(conteoDia),
-        datasets:[{
-            label:"Ventas del Día",
-            data:Object.values(conteoDia)
-        }]
-    }
-});
+graficaDia=new Chart(document.getElementById("graficaDia"),{     type:"bar",     data:{         labels:Object.keys(conteoDia),         datasets:[{             label:"Ventas del Día",             data:Object.values(conteoDia)         }]     } });
 
-/* SEMANA */
-let totalS=0;
-tablaSemana.innerHTML="";
-let conteoSemana={};
-let ahora = new Date();
+/* SEMANA */ let totalS=0; tablaSemana.innerHTML=""; let conteoSemana={}; let ahora = new Date();
 
-ventasHistorico.forEach(v=>{
-    let f=new Date(v.fecha);
-    let dif=(ahora - f)/(1000*60*60*24);
+ventasHistorico.forEach(v=>{     let f=new Date(v.fecha);     let dif=(ahora - f)/(1000*60*60*24);
 
-    if(dif<=7){
-        totalS+=v.total;
+    if(dif<=7){         totalS+=v.total;
 
-        tablaSemana.innerHTML+=`
-        <tr>
-        <td>${v.nombre}</td>
-        <td>${v.cantidad}</td>
-        <td>$${v.total}</td>
-        <td>${new Date(v.fecha).toLocaleString()}</td>
-        </tr>`;
+        tablaSemana.innerHTML+=`         <tr>         <td>${v.nombre}</td>         <td>${v.cantidad}</td>         <td>$${v.total}</td>         <td>${new Date(v.fecha).toLocaleString()}</td>         </tr>`;
 
-        conteoSemana[v.nombre]=(conteoSemana[v.nombre]||0)+v.cantidad;
-    }
-});
+        conteoSemana[v.nombre]=(conteoSemana[v.nombre]||0)+v.cantidad;     } });
 
 totalSemana.innerText=totalS;
 
 if(graficaSemana) graficaSemana.destroy();
 
-graficaSemana=new Chart(document.getElementById("graficaSemana"),{
-    type:"bar",
-    data:{
-        labels:Object.keys(conteoSemana),
-        datasets:[{
-            label:"Ventas de la Semana",
-            data:Object.values(conteoSemana)
-        }]
-    }
-});
+graficaSemana=new Chart(document.getElementById("graficaSemana"),{     type:"bar",     data:{         labels:Object.keys(conteoSemana),         datasets:[{             label:"Ventas de la Semana",             data:Object.values(conteoSemana)         }]     } });
 
+/* GENERAL */ let totalG=0; tablaGeneral.innerHTML=""; let conteoGeneral={};
 
-/* GENERAL */
-let totalG=0;
-tablaGeneral.innerHTML="";
-let conteoGeneral={};
+ventasHistorico.forEach(v=>{     totalG+=v.total;
 
-ventasHistorico.forEach(v=>{
-    totalG+=v.total;
+    tablaGeneral.innerHTML+=`     <tr>     <td>${v.nombre}</td>     <td>${v.cantidad}</td>     <td>$${v.precio}</td>     <td>$${v.total}</td>     <td>${new Date(v.fecha).toLocaleString()}</td>     </tr>`;
 
-    tablaGeneral.innerHTML+=`
-    <tr>
-    <td>${v.nombre}</td>
-    <td>${v.cantidad}</td>
-    <td>$${v.precio}</td>
-    <td>$${v.total}</td>
-    <td>${new Date(v.fecha).toLocaleString()}</td>
-    </tr>`;
-
-    conteoGeneral[v.nombre]=(conteoGeneral[v.nombre]||0)+v.cantidad;
-});
+    conteoGeneral[v.nombre]=(conteoGeneral[v.nombre]||0)+v.cantidad; });
 
 totalGeneral.innerText=totalG;
 
 if(graficaGeneral) graficaGeneral.destroy();
 
-graficaGeneral=new Chart(document.getElementById("graficaVentas"),{
-    type:"bar",
-    data:{
-        labels:Object.keys(conteoGeneral),
-        datasets:[{
-            label:"Ventas Totales",
-            data:Object.values(conteoGeneral)
-        }]
-    }
-});
-}
+graficaGeneral=new Chart(document.getElementById("graficaVentas"),{     type:"bar",     data:{         labels:Object.keys(conteoGeneral),         datasets:[{             label:"Ventas Totales",             data:Object.values(conteoGeneral)         }]     } }); }
 
-
-/* ACTUALIZAR TODO */
-function actualizarTodo(){
-    actualizarInventario();
-    actualizarSelect();
-    actualizarReportes();
-    actualizarHistorial();
-}
-window.filtrarPorFecha = function(){
+/* ACTUALIZAR TODO */ function actualizarTodo(){     actualizarInventario();     actualizarSelect();     actualizarReportes();     actualizarHistorial(); } window.filtrarPorFecha = function(){
 
     let fechaSeleccionada = new Date(fechaFiltro.value).toLocaleDateString();
 
-    tablaFiltro.innerHTML = "";
-    let total = 0;
+    tablaFiltro.innerHTML = "";     let total = 0;
 
-    ventasHistorico.forEach(v=>{
-        let fechaVenta = new Date(v.fecha).toLocaleDateString();
+    ventasHistorico.forEach(v=>{         let fechaVenta = new Date(v.fecha).toLocaleDateString();
 
         if(fechaVenta === fechaSeleccionada){
 
             total += v.total;
 
-            tablaFiltro.innerHTML += `
-            <tr>
-            <td>${v.nombre}</td>
-            <td>${v.cantidad}</td>
-            <td>$${v.total}</td>
-            <td>${new Date(v.fecha).toLocaleString()}</td>
-            </tr>`;
-        }
-    });
+            tablaFiltro.innerHTML += `             <tr>             <td>${v.nombre}</td>             <td>${v.cantidad}</td>             <td>$${v.total}</td>             <td>${new Date(v.fecha).toLocaleString()}</td>             </tr>`;         }     });
 
-    alert("Total de ese día: $" + total);
-}
+    alert("Total de ese día: $" + total); }
 
-</script>
-</body>
-</html>
+</script> </body> </html>
