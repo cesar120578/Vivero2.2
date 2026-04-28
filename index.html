@@ -2,7 +2,17 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<style> body{     background:black;     color:gold;     font-family:Arial;     text-align:center; } .logo{     font-size:28px;     font-weight:bold;     margin-top:10px; } .section{     width:90%;     margin:25px auto;     border:1px solid gold;     border-radius:10px;     padding:20px; } h2{     cursor:pointer;     border-bottom:1px solid gold;     padding-bottom:8px; } .hidden{ display:none; } input,select,button{     padding:8px;     margin:6px;     border-radius:6px;     border:none; } button{     background:gold;     color:black;     font-weight:bold;     cursor:pointer; } button:hover{ background:#d4af37; } table{     width:100%;     border-collapse:collapse;     margin-top:15px;     font-size:18px; } th,td{     border:1px solid gold;     padding:10px; } th{ background:#111; } canvas{ margin-top:20px; } #loginBox{ margin-top:100px; } </style> </head>
+<style>
+body{
+    background:black;
+    color:gold;
+    font-family:Arial;
+}
+.hidden{ display:none; }
+
+
+ body{     background:black;     color:gold;     font-family:Arial;     text-align:center; } .logo{     font-size:28px;     font-weight:bold;     margin-top:10px; } .section{     width:90%;     margin:25px auto;     border:1px solid gold;     border-radius:10px;     padding:20px; } h2{     cursor:pointer;     border-bottom:1px solid gold;     padding-bottom:8px; } .hidden{ display:none; } input,select,button{     padding:8px;     margin:6px;     border-radius:6px;     border:none; } button{     background:gold;     color:black;     font-weight:bold;     cursor:pointer; } button:hover{ background:#d4af37; } table{     width:100%;     border-collapse:collapse;     margin-top:15px;     font-size:18px; } th,td{     border:1px solid gold;     padding:10px; } th{ background:#111; } canvas{ margin-top:20px; } #loginBox{ margin-top:100px; } </style>
+ </head>
 
 <body>
 
@@ -72,14 +82,27 @@ let ventasHistorico=[]; let historial=[];
 
 let graficaDia; let graficaSemana; let graficaGeneral;
 
-onAuthStateChanged(auth, (user)=>{     if(user){         usuarioActual = user.email;
+onAuthStateChanged(auth, (user)=>{
+    if(user){
+        usuarioActual = user.email;
 
-        loginBox.classList.add("hidden");         sistema.classList.remove("hidden");
+        // 🔥 OCULTAR LOGIN
+        document.getElementById("loginBox").style.display = "none";
+
+        // 🔥 MOSTRAR SISTEMA
+        document.getElementById("sistema").style.display = "block";
 
         usuarioActivo.innerText = usuarioActual;
 
-        cargarDatos();     } });
+        cargarDatos();
+    } else {
+        // 🔥 MOSTRAR LOGIN
+        document.getElementById("loginBox").style.display = "block";
 
+        // 🔥 OCULTAR SISTEMA
+        document.getElementById("sistema").style.display = "none";
+    }
+});
 /* ================= FIREBASE ================= */
 
 function cargarDatos(){     const dbRef = ref(db);     onValue(dbRef,(snapshot)=>{         if(snapshot.exists()){             const data = snapshot.val();             plantas = data.plantas || {};             ventas = data.ventas || [];
@@ -88,23 +111,61 @@ function cargarDatos(){     const dbRef = ref(db);     onValue(dbRef,(snapsh
 
 async function guardar(){     try{         await update(ref(db),{             plantas,                        historial         });         console.log("Guardado correcto");     }catch(e){         console.error("Error:", e);         alert("Error con la base de datos");     } }
 
-window.login = async function(){     let email = usuarioInput.value;     let password = claveInput.value;
+//window.login = async function(){   //  let email = usuarioInput.value;     //let password = claveInput.value;
 
-    try{         const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    //try{       //  const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
-        usuarioActual = userCredential.user.email;
+//        usuarioActual = userCredential.user.email;
 
-        loginBox.classList.add("hidden");         sistema.classList.remove("hidden");
+  //      loginBox.classList.add("hidden");     //    sistema.classList.remove("hidden");
 
-        usuarioActivo.innerText = usuarioActual;
+      //  usuarioActivo.innerText = usuarioActual;
 
-        cargarDatos();
+        //cargarDatos();
 
-    }catch(error){         alert("Error: " + error.message);     } }
+   // }catch(error){     //    alert("Error: " + error.message);   //  } //}
+window.login = async function(){
+    let email = usuarioInput.value;
+    let password = claveInput.value;
 
+    try{
+        await signInWithEmailAndPassword(auth, email, password);
+    }catch(error){
+        alert("Error: " + error.message);
+    }
+}
 window.cerrarSesion = async function(){     await signOut(auth);     location.reload(); } function registrarHistorial(accion,detalle){     historial.push({         fecha:new Date().toLocaleString(),         usuario:usuarioActual,         accion,         detalle     });     guardar(); }
+//crear usuario
+window.crearUsuario = async function(){
 
-window.toggle = function(id){     document.getElementById(id).classList.toggle("hidden"); }
+    let email = prompt("Correo del usuario:");
+    let password = prompt("Contraseña:");
+
+    if(!email || !password){
+        return alert("Datos inválidos");
+    }
+
+    try{
+        // 🔥 GUARDAR ADMIN ACTUAL
+        let adminEmail = usuarioActual;
+        let adminPassword = prompt("Confirma tu contraseña de admin:");
+
+        let userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        let uid = userCredential.user.uid;
+
+        await set(ref(db, "usuarios/" + uid), {
+            rol: "empleado"
+        });
+
+        alert("Usuario creado correctamente");
+
+        // 🔥 VOLVER A LOGEAR ADMIN
+        await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
+
+    }catch(error){
+        alert("Error: " + error.message);
+    }
+}window.toggle = function(id){     document.getElementById(id).classList.toggle("hidden"); }
 
 function ordenar(){ return Object.keys(plantas).sort((a,b)=>a.localeCompare(b)); }
 
@@ -145,36 +206,7 @@ window.eliminarPlanta = async function(){     let n=editarNombre.value;     
     plantas[n].inventario+=c;
 
     registrarHistorial("Reabastecer",`${n} +${c}`);     await guardar();     actualizarTodo();
-//crear usuario
-window.crearUsuario = async function(){
-
-    let email = prompt("Correo del usuario:");
-    let password = prompt("Contraseña:");
-
-    if(!email || !password){
-        return alert("Datos inválidos");
-    }
-
-    try{
-        let userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
-        let uid = userCredential.user.uid;
-
-        // Guardar rol en la base
-        await set(ref(db, "usuarios/" + uid), {
-            rol: "empleado"
-        });
-
-        alert("Usuario creado correctamente");
-
-        // IMPORTANTE: regresar al admin
-        await signOut(auth);
-
-    }catch(error){
-        alert("Error: " + error.message);
-    }
-}
-    //  LIMPIAR INPUT     reabastecerCantidad.value=""; }
+   //  LIMPIAR INPUT     reabastecerCantidad.value=""; }
 
 /* REGISTRAR VENTA */ window.registrarVenta = async function(){     let n=ventaNombre.value;     let c=parseInt(ventaCantidad.value);
 
