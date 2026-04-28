@@ -110,26 +110,17 @@ function cargarDatos(){     const dbRef = ref(db);     onValue(dbRef,(snapsh
 
 async function guardar(){     try{         await update(ref(db),{             plantas,                        historial         });         console.log("Guardado correcto");     }catch(e){         console.error("Error:", e);         alert("Error con la base de datos");     } }
 
-//window.login = async function(){   //  let email = usuarioInput.value;     //let password = claveInput.value;
-
-    //try{       //  const userCredential = await signInWithEmailAndPassword(auth, email, password);
-
-//        usuarioActual = userCredential.user.email;
-
-  //      loginBox.classList.add("hidden");     //    sistema.classList.remove("hidden");
-
-      //  usuarioActivo.innerText = usuarioActual;
-
-        //cargarDatos();
-
-   // }catch(error){     //    alert("Error: " + error.message);   //  } //}
 window.login = async function(){
-    let email = usuarioInput.value;
-    let password = claveInput.value;
+    let email = document.getElementById("usuarioInput").value;
+    let password = document.getElementById("claveInput").value;
+
+    console.log("Intentando login con:", email);
 
     try{
         await signInWithEmailAndPassword(auth, email, password);
+        console.log("Login correcto");
     }catch(error){
+        console.error(error);
         alert("Error: " + error.message);
     }
 }
