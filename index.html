@@ -92,8 +92,7 @@ onAuthStateChanged(auth, (user)=>{
         // 🔥 MOSTRAR SISTEMA
         document.getElementById("sistema").style.display = "block";
 
-        usuarioActivo.innerText = usuarioActual;
-
+        document.getElementById("usuarioActivo").innerText = usuarioActual;
         cargarDatos();
     } else {
         // 🔥 MOSTRAR LOGIN
