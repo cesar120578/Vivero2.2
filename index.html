@@ -305,18 +305,21 @@ function cargarDatos(){
 
 async function guardar(){
     try{
-        await update(ref(db),{
-            plantas,
-          
-            historial
-        });
+
+        await set(ref(db, "plantas"), plantas);
+
+        await set(ref(db, "historial"), historial);
+
         console.log("Guardado correcto");
+
     }catch(e){
+
         console.error("Error:", e);
-        alert("Error con la base de datos");
+
+        alert("Error con Firebase");
+
     }
 }
-
 window.login = async function(){
     let u=usuarioInput.value;
     let c=claveInput.value;
@@ -399,7 +402,7 @@ window.guardarCambios = async function(){
     let precio=parseFloat(editarNuevoPrecio.value);
     let cantidad=parseInt(editarNuevaCantidad.value);
 
-    if(!nuevo||!precio||!cantidad) return alert("Datos inválidos");
+  if(nuevo === "" || precio <= 0 || cantidad < 0) return alert("Datos inválidos");
 
     delete plantas[original];
     plantas[nuevo]={precio:precio,inventario:cantidad};
@@ -425,7 +428,7 @@ window.agregarPlanta = async function(){
     let p=parseFloat(precioNueva.value);
     let c=parseInt(cantidadNueva.value);
 
-    if(!n||!p||!c) return alert("Datos inválidos");
+    if(n === "" || p <= 0 || c < 0) return alert("Datos inválidos");
     if(plantas[n]) return alert("Ya existe");
 
     plantas[n]={precio:p,inventario:c};
