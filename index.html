@@ -468,38 +468,41 @@ setTimeout(()=>{
 
 /* REGISTRAR VENTA */
 window.registrarVenta = async function(){
-    let n=ventaNombre.value;
-    let c=parseInt(ventaCantidad.value);
 
-    if(!c||c<=0||plantas[n].inventario<c) return alert("Error");
+    let n = ventaNombre.value;
+    let c = parseInt(ventaCantidad.value);
 
-    plantas[n].inventario -= c;
+    if(!c || c <= 0 || plantas[n].inventario < c){
+        return alert("Stock insuficiente");
+    }
 
-await set(ref(db, `plantas/${n}`), plantas[n]);
+    // NUEVO STOCK
+    let nuevoInventario = plantas[n].inventario - c;
 
-let ventaObj={
+    // ACTUALIZAR FIREBASE
+    await set(ref(db, `plantas/${n}/inventario`), nuevoInventario);
+
+    // ACTUALIZAR OBJETO LOCAL
+    plantas[n].inventario = nuevoInventario;
+
+    // CREAR OBJETO VENTA
+    let ventaObj = {
         nombre:n,
         cantidad:c,
         precio:plantas[n].precio,
-        total:c*plantas[n].precio,
+        total:c * plantas[n].precio,
         fecha: Date.now(),
         usuario:usuarioActual
     };
 
-//ventasDia.push(ventaObj);
+    // GUARDAR VENTA
+    await push(ref(db, "ventasHistorico"), ventaObj);
 
-await push(ref(db, "ventasHistorico"), ventaObj);
+    // LIMPIAR INPUT
+    ventaCantidad.value = "";
 
-
-
-setTimeout(()=>{
+    // ACTUALIZAR PANTALLA
     actualizarTodo();
-},300);
-
-
-
-    //  LIMPIAR INPUT
-    ventaCantidad.value="";
 }
 
 /* CORTE DEL DÍA */
@@ -509,20 +512,23 @@ window.corteDelDia = function(){
 
 /* RESTABLECER SISTEMA */
 window.restablecerSistema = async function(){
-    let codigo=prompt("Código:");
 
-    if(codigo==="241412"){
-        plantas={};
-        
-        
-        ventasHistorico=[];
-        historial=[];
+    let codigo = prompt("Código:");
+
+    if(codigo === "241412"){
+
+        plantas = {};
+        ventasHistorico = [];
+        historial = [];
 
         await set(ref(db, "plantas"), {});
-await set(ref(db, "ventasHistorico"), {});
-await set(ref(db, "historial"), {});
+
+        await set(ref(db, "ventasHistorico"), []);
+
+        await set(ref(db, "historial"), []);
 
         alert("Sistema reiniciado");
+
         location.reload();
     }
 }
